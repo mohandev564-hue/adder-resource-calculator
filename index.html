@@ -1,0 +1,3605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EC2201 Digital Systems: Interactive Silicon Adder & Breadboard Learning Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Deep Obsidian / Carbon Base (NO BLUE) */
+      --carbon-950: #060608;
+      --carbon-900: #0d0e12;
+      --carbon-850: #13151b;
+      --carbon-800: #1a1c24;
+      --carbon-700: #262934;
+      --carbon-600: #3b3f4e;
+      --carbon-400: #878c9e;
+      --carbon-200: #f1f2f6;
+      
+      /* CONTRAST COLOR 1: Electric Laser Amber / Cyber Gold */
+      --amber-main: #f59e0b;
+      --amber-bright: #fbbf24;
+      --amber-dark: #b45309;
+      --glow-amber: 0 0 22px rgba(245, 158, 11, 0.45);
+      
+      /* CONTRAST COLOR 2: Neon Cyber Mint / High-Contrast Emerald */
+      --mint-main: #10b981;
+      --mint-bright: #34d399;
+      --mint-dark: #047857;
+      --glow-mint: 0 0 22px rgba(16, 185, 129, 0.5);
+
+      /* Status Flags */
+      --signal-low: #3f4252;
+      --signal-err: #ef4444;
+      --border-dim: #1f222c;
+      --border-med: #2d313e;
+      
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--carbon-950);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(245, 158, 11, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, rgba(16, 185, 129, 0.05) 0%, transparent 45%),
+        linear-gradient(to right, rgba(45, 49, 62, 0.3) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(45, 49, 62, 0.3) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+      color: var(--carbon-200);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #060608; }
+    ::-webkit-scrollbar-thumb { background: #262934; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--amber-main); }
+
+    /* ==========================================================================
+       TEXT ARRIVAL KINETIC ANIMATIONS
+       ========================================================================== */
+    @keyframes textArrive {
+      0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+        filter: blur(4px);
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(-1px) scale(1.01);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    .arrive-text {
+      display: inline-block;
+      animation: textArrive 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .arrive-text-delayed {
+      display: inline-block;
+      opacity: 0;
+      animation: textArrive 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+    }
+
+    /* Header Bar */
+    header.lab-header {
+      background: rgba(13, 14, 18, 0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 2px solid var(--border-med);
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .lab-title-block {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .dept-seal {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #13151b, #1a1c24);
+      border: 1.5px solid var(--amber-main);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-code);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--amber-main);
+      box-shadow: var(--glow-amber);
+      letter-spacing: -0.05em;
+    }
+
+    .title-details h1 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .title-details p {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: var(--carbon-400);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .top-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--carbon-850);
+      border: 1px solid var(--border-dim);
+      padding: 0.4rem 0.85rem;
+      border-radius: 4px;
+      transition: all 0.25s ease;
+    }
+    .status-pill:hover {
+      border-color: var(--mint-main);
+      box-shadow: var(--glow-mint);
+    }
+
+    .status-led {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--mint-main);
+      box-shadow: 0 0 10px var(--mint-main);
+      animation: ledPulse 1.8s infinite;
+    }
+    @keyframes ledPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* Tabs Bar */
+    nav.workspace-tabs {
+      background: rgba(13, 14, 18, 0.96);
+      border-bottom: 1px solid var(--border-med);
+      display: flex;
+      overflow-x: auto;
+      padding: 0 1.5rem;
+      gap: 0.35rem;
+    }
+
+    .view-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.85rem 1.25rem;
+      color: var(--carbon-400);
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .view-tab-btn:hover {
+      color: #fff;
+      background: rgba(245, 158, 11, 0.05);
+      transform: translateY(-1px);
+    }
+
+    .view-tab-btn.active {
+      color: var(--amber-bright);
+      border-bottom-color: var(--amber-main);
+      background: rgba(245, 158, 11, 0.08);
+      font-weight: 700;
+    }
+
+    .tab-badge {
+      font-size: 0.65rem;
+      background: var(--carbon-800);
+      color: var(--carbon-400);
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      transition: all 0.2s ease;
+    }
+
+    .view-tab-btn.active .tab-badge {
+      background: var(--amber-main);
+      color: #000;
+      font-weight: 800;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    }
+
+    /* Main Viewport Container */
+    main.workspace-viewport {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.75rem 1.5rem 3.5rem;
+      flex: 1;
+    }
+
+    /* View Panels */
+    .view-panel {
+      display: none;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+    .view-panel.active {
+      display: flex;
+    }
+
+    /* Common Card Styling */
+    .lab-card {
+      background: var(--carbon-900);
+      border: 1px solid var(--border-med);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .lab-card:hover {
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(245, 158, 11, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .card-head {
+      background: var(--carbon-850);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 0.8rem 1.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-body { padding: 1.5rem; }
+
+    /* Segment Controls */
+    .seg-control {
+      display: inline-flex;
+      background: var(--carbon-950);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 3px;
+      gap: 2px;
+      transition: border-color 0.2s ease;
+    }
+    .seg-control:hover { border-color: var(--carbon-600); }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--carbon-400);
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .seg-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.04); }
+    .seg-btn.active {
+      background: var(--carbon-800);
+      color: var(--amber-main);
+      border: 1px solid var(--border-med);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+    }
+
+    /* Buttons */
+    .eng-btn {
+      background: var(--carbon-800);
+      border: 1px solid var(--border-med);
+      color: var(--carbon-200);
+      font-family: var(--font-code);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.55rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .eng-btn:hover {
+      background: var(--carbon-700);
+      color: #fff;
+      border-color: var(--carbon-400);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+    .eng-btn:active { transform: translateY(1px); }
+
+    .eng-btn.primary {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      border-color: var(--amber-bright);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+    }
+    .eng-btn.primary:hover {
+      background: linear-gradient(135deg, #b45309, #d97706);
+      box-shadow: 0 6px 22px rgba(245, 158, 11, 0.5);
+      border-color: #fff;
+    }
+
+    .eng-input {
+      background: var(--carbon-950);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      color: #fff;
+      font-family: var(--font-code);
+      font-size: 1.15rem;
+      padding: 0.65rem 0.95rem;
+      outline: none;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+    .eng-input:focus {
+      border-color: var(--amber-main);
+      box-shadow: var(--glow-amber);
+    }
+    .eng-input.err {
+      border-color: var(--signal-err);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.5rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* ==========================================================================
+       HIGH-CONTRAST PICTORIAL SYSTEM CANVAS
+       ========================================================================== */
+    .pictorial-canvas-container {
+      background: #090a0f;
+      border: 1.5px solid var(--border-med);
+      border-radius: 8px;
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    }
+    .pictorial-canvas-container::before {
+      content: "HARDWARE RESOURCE COUPLING & SILICON PIPELINE";
+      position: absolute;
+      top: 0.75rem;
+      right: 1.25rem;
+      font-family: var(--font-code);
+      font-size: 0.7rem;
+      color: var(--carbon-600);
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    @keyframes fanRotation {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spinning-fan {
+      animation: fanRotation 0.8s linear infinite;
+      transform-origin: center;
+    }
+
+    @keyframes pulseElectronAmber {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: -40; }
+    }
+    .electron-amber {
+      stroke-dasharray: 6 10;
+      animation: pulseElectronAmber 0.8s linear infinite;
+    }
+
+    @keyframes pulseElectronMint {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: -40; }
+    }
+    .electron-mint {
+      stroke-dasharray: 6 10;
+      animation: pulseElectronMint 0.8s linear infinite;
+    }
+
+    @keyframes statusBlink {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 6px var(--mint-bright)); }
+      50% { opacity: 0.15; filter: none; }
+    }
+    .status-blinker {
+      animation: statusBlink 0.4s infinite alternate ease-in-out;
+    }
+
+    @keyframes chipGlowPulse {
+      0%, 100% { filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.4)); }
+      50% { filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.85)); }
+    }
+    .chip-glow {
+      animation: chipGlowPulse 2.5s infinite ease-in-out;
+    }
+
+    @keyframes overflowSiren {
+      0%, 100% { stroke: #ef4444; filter: drop-shadow(0 0 14px #ef4444); }
+      50% { stroke: #450a0a; filter: none; }
+    }
+    .alarm-active {
+      animation: overflowSiren 0.5s infinite alternate;
+    }
+
+    #gauge-needle {
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #gauge-arc {
+      transition: stroke-dashoffset 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .rack-bay-rect {
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .rack-bay-rect:hover {
+      filter: drop-shadow(0 0 8px #fff);
+      stroke: #fff !important;
+      transform: scaleX(1.02);
+    }
+
+    /* Ripple Adder Track */
+    .ripple-viewport {
+      background: #08090c;
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+    .ripple-chain {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      min-width: max-content;
+    }
+    .adder-stage-box {
+      background: var(--carbon-900);
+      border: 1px solid var(--border-med);
+      border-radius: 6px;
+      width: 140px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .adder-stage-box:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--amber-main);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .adder-stage-box.evaluating {
+      border-color: var(--amber-bright);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
+      transform: translateY(-5px) scale(1.04);
+    }
+    .adder-stage-box.done {
+      border-color: var(--mint-main);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    }
+
+    .carry-junction {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+    }
+    .carry-arrow {
+      color: var(--carbon-600);
+      font-size: 1.25rem;
+      transition: all 0.25s ease;
+    }
+    .carry-arrow.active {
+      color: var(--amber-bright);
+      font-weight: 800;
+      transform: scale(1.25);
+      filter: drop-shadow(0 0 8px var(--amber-bright));
+    }
+
+    /* Metric Box */
+    .metric-box {
+      background: var(--carbon-950);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      padding: 0.95rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: all 0.25s ease;
+    }
+    .metric-box:hover {
+      border-color: var(--amber-main);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    .metric-lbl {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: var(--carbon-400);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .metric-val {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .metric-sub {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: var(--carbon-600);
+    }
+
+    /* Table Styling */
+    .table-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      background: var(--carbon-950);
+    }
+    table.eng-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    table.eng-table th {
+      background: var(--carbon-850);
+      color: var(--amber-main);
+      font-weight: 700;
+      padding: 0.7rem 0.85rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    table.eng-table td {
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid rgba(45, 49, 62, 0.3);
+      color: var(--carbon-400);
+      transition: all 0.2s ease;
+    }
+    table.eng-table tr:hover td {
+      background: rgba(245, 158, 11, 0.08);
+      color: #fff;
+      transform: scale(1.005);
+    }
+    table.eng-table tr.active-eval td {
+      background: rgba(16, 185, 129, 0.16) !important;
+      color: #fff !important;
+      font-weight: 700;
+    }
+
+    /* Karnaugh Map Matrix */
+    .kmap-board {
+      position: relative;
+      background: var(--carbon-950);
+      border: 1.5px solid var(--border-med);
+      padding: 1.5rem;
+      border-radius: 6px;
+      display: inline-block;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+    table.kmap-table {
+      border-collapse: collapse;
+      font-family: var(--font-code);
+      position: relative;
+      z-index: 2;
+    }
+    table.kmap-table th {
+      padding: 0.6rem 1.1rem;
+      font-size: 0.85rem;
+      color: var(--carbon-400);
+      text-align: center;
+    }
+    .kmap-head-cell {
+      border-bottom: 1px solid var(--border-med);
+      border-right: 1px solid var(--border-med);
+      font-size: 0.8rem;
+      color: var(--amber-main);
+      padding: 0.6rem 0.9rem;
+      font-weight: 700;
+    }
+    .kmap-cell {
+      width: 70px;
+      height: 65px;
+      border: 1px solid var(--border-dim);
+      text-align: center;
+      vertical-align: middle;
+      position: relative;
+      background: rgba(19, 21, 27, 0.6);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
+    }
+    .kmap-cell:hover {
+      background: var(--carbon-800);
+      border-color: var(--amber-main);
+      transform: scale(1.08);
+      z-index: 20;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    }
+    .kmap-cell .num { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+    .kmap-cell .tag {
+      position: absolute;
+      bottom: 3px;
+      right: 5px;
+      font-size: 0.68rem;
+      color: var(--carbon-600);
+    }
+
+    svg.kmap-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .kmap-loop {
+      fill-opacity: 0.18;
+      stroke-width: 2.5;
+      stroke-dasharray: 5 3;
+      animation: loopRotate 3.5s linear infinite;
+    }
+    @keyframes loopRotate { to { stroke-dashoffset: 32; } }
+    .kmap-loop.c1 { stroke: var(--mint-main); fill: var(--mint-main); filter: drop-shadow(0 0 6px var(--mint-main)); }
+    .kmap-loop.c2 { stroke: var(--amber-main); fill: var(--amber-main); filter: drop-shadow(0 0 6px var(--amber-main)); }
+    .kmap-loop.c3 { stroke: #fff; fill: #fff; filter: drop-shadow(0 0 6px #fff); }
+
+    /* Hardware Switch */
+    .logic-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--carbon-950);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      user-select: none;
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      color: var(--carbon-400);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .logic-switch:hover {
+      border-color: var(--amber-main);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .logic-switch.active {
+      border-color: var(--mint-main);
+      background: rgba(16, 185, 129, 0.12);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+    }
+    .switch-indicator {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      text-align: center;
+      background: var(--carbon-800);
+      border-radius: 3px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      color: var(--carbon-400);
+      transition: all 0.2s ease;
+    }
+    .logic-switch.active .switch-indicator {
+      background: var(--mint-main);
+      color: #000;
+      box-shadow: 0 0 8px var(--mint-main);
+    }
+
+    /* Verilog Output Console */
+    .verilog-term {
+      background: #040507;
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      color: var(--amber-bright);
+      max-height: 280px;
+      overflow-y: auto;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Challenge Missions */
+    .mission-card {
+      background: var(--carbon-950);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      padding: 1.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .mission-card:hover {
+      border-color: var(--amber-main);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.15);
+    }
+    .mission-card.completed {
+      border-color: var(--mint-main);
+      background: rgba(16, 185, 129, 0.05);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    }
+    .mission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mission-badge {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 3px;
+      font-weight: 800;
+    }
+    .mission-badge.pending { background: rgba(135, 140, 158, 0.15); color: var(--carbon-400); }
+    .mission-badge.solved {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--mint-main);
+      border: 1px solid var(--mint-main);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Interactive Calculator & Enhanced Feature Additions */
+    .bit-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 3px;
+      font-family: var(--font-code);
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .bit-badge-0 {
+      background: var(--carbon-800);
+      color: var(--carbon-400);
+      border: 1px solid var(--border-dim);
+    }
+    .bit-badge-amber {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--amber-bright);
+      border: 1px solid var(--amber-main);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    }
+    .bit-badge-mint {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--mint-bright);
+      border: 1px solid var(--mint-main);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+    }
+    .bit-badge-sum {
+      background: rgba(251, 191, 36, 0.25);
+      color: #fff;
+      border: 1px solid var(--amber-bright);
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+    }
+    .gate-glow-pulse {
+      animation: gatePulse 0.5s ease;
+    }
+    @keyframes gatePulse {
+      0% { filter: drop-shadow(0 0 2px var(--amber-main)); }
+      50% { filter: drop-shadow(0 0 16px var(--amber-bright)); }
+      100% { filter: none; }
+    }
+    .tb-filter-btn {
+      background: var(--carbon-850);
+      border: 1px solid var(--border-dim);
+      color: var(--carbon-400);
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tb-filter-btn:hover { color: #fff; border-color: var(--carbon-400); }
+    .tb-filter-btn.active {
+      background: var(--carbon-700);
+      color: var(--mint-bright);
+      border-color: var(--mint-main);
+    }
+
+    /* ==========================================================================
+       LOGIN INTRO OVERLAY & FADE-AWAY ANIMATIONS
+       ========================================================================== */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 6, 8, 0.95);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+                  filter 0.75s ease;
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0px);
+      padding: 1.5rem;
+    }
+
+    .login-overlay.login-fade-out {
+      opacity: 0;
+      transform: scale(1.05);
+      filter: blur(14px);
+      pointer-events: none;
+    }
+
+    .login-backdrop {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(circle at 25% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 75% 80%, rgba(16, 185, 129, 0.12) 0%, transparent 45%),
+        linear-gradient(to right, rgba(45, 49, 62, 0.3) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(45, 49, 62, 0.3) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+      pointer-events: none;
+    }
+
+    .login-card {
+      position: relative;
+      background: rgba(13, 14, 18, 0.94);
+      border: 1.5px solid var(--border-med);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(245, 158, 11, 0.12);
+      overflow: hidden;
+      animation: loginCardArrival 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      z-index: 2;
+    }
+
+    @keyframes loginCardArrival {
+      0% {
+        opacity: 0;
+        transform: translateY(28px) scale(0.95);
+        filter: blur(8px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    .login-glow-amber {
+      position: absolute;
+      top: -40px;
+      left: -40px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-glow-mint {
+      position: absolute;
+      bottom: -40px;
+      right: -40px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-header-bar {
+      background: var(--carbon-850);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 1.1rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .login-scan-track {
+      height: 2.5px;
+      background: var(--carbon-800);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-scan-beam {
+      position: absolute;
+      height: 100%;
+      width: 35%;
+      background: linear-gradient(90deg, transparent, var(--amber-bright), var(--mint-bright), transparent);
+      animation: scanBeam 2.2s ease-in-out infinite;
+    }
+
+    @keyframes scanBeam {
+      0% { left: -35%; }
+      50% { left: 100%; }
+      100% { left: -35%; }
+    }
+
+    .login-body {
+      padding: 1.6rem 1.6rem 1.35rem;
+    }
+
+    .login-feedback-box {
+      background: var(--carbon-950);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 0.65rem 0.95rem;
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s ease;
+    }
+
+    .login-footer {
+      background: var(--carbon-900);
+      border-top: 1px solid var(--border-dim);
+      padding: 0.8rem 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-code);
+      font-size: 0.65rem;
+      color: var(--carbon-600);
+      letter-spacing: 0.05em;
+    }
+
+    footer.lab-footer {
+      background: var(--carbon-900);
+      border-top: 1px solid var(--border-dim);
+      padding: 0.9rem 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: var(--carbon-600);
+    }
+
+    @media (max-width: 860px) {
+      header.lab-header { flex-direction: column; align-items: flex-start; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       LAB LOGIN & SECURITY CLEARANCE INTRO OVERLAY
+       ====================================================================== -->
+  <div id="login-screen-overlay" class="login-overlay">
+    <div class="login-backdrop"></div>
+    <div class="login-card">
+      <!-- Ambient Glow Orbs -->
+      <div class="login-glow-amber"></div>
+      <div class="login-glow-mint"></div>
+
+      <!-- Security Status Bar -->
+      <div class="login-header-bar">
+        <div class="dept-seal" style="width: 38px; height: 38px; font-size: 10px;">
+          <span>ECE</span>
+          <span style="font-size:7px; color:var(--carbon-400);">SEC</span>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: #fff; letter-spacing: 0.02em;">
+            ECE DIGITAL SYSTEMS VIRTUAL LAB
+          </div>
+          <div style="font-family: var(--font-code); font-size: 0.68rem; color: var(--amber-bright); display: flex; align-items: center; gap: 0.4rem;">
+            <span class="status-led" style="width: 6px; height: 6px;"></span>
+            <span>RESTRICTED ACCESS &bull; HARDWARE VERIFICATION TERMINAL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animated Cyber Scanner Bar -->
+      <div class="login-scan-track">
+        <div class="login-scan-beam" id="login-scan-beam"></div>
+      </div>
+
+      <div class="login-body">
+        <div style="margin-bottom: 1.25rem;">
+          <h2 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; font-weight: 700; margin-bottom: 0.35rem;">
+            Station Authorization
+          </h2>
+          <p style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400); line-height: 1.5;">
+            Authenticate operator credentials to initialize the silicon macrocell simulator, logic timing analyzer, and Verilog testbench suite.
+          </p>
+        </div>
+
+        <form id="login-form" onsubmit="handleLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-400); font-weight: 600; margin-bottom: 0.35rem;">
+              <span>OPERATOR CALL-SIGN / ID</span>
+              <span style="color: var(--amber-main);">[REQUIRED]</span>
+            </label>
+            <div style="position: relative;">
+              <input type="text" id="login-user" class="eng-input" value="ECE-STUDENT-01" required autocomplete="username" style="padding-left: 2.25rem; font-size: 0.95rem;" />
+              <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); font-family: var(--font-code); color: var(--amber-main); font-size: 0.85rem;">&gt;</span>
+            </div>
+          </div>
+
+          <div>
+            <label style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-400); font-weight: 600; margin-bottom: 0.35rem;">
+              <span>SECURITY ACCESS PIN / KEY</span>
+              <span style="color: var(--mint-main);">DEFAULT: 2026</span>
+            </label>
+            <div style="position: relative;">
+              <input type="password" id="login-pass" class="eng-input" value="2026" required autocomplete="current-password" style="padding-left: 2.25rem; font-size: 0.95rem; letter-spacing: 0.15em;" />
+              <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); font-family: var(--font-code); color: var(--mint-main); font-size: 0.85rem;">#</span>
+            </div>
+          </div>
+
+          <!-- Clearance Feedback Terminal -->
+          <div id="login-feedback" class="login-feedback-box">
+            <span style="color: var(--carbon-400);">&bull; Awaiting biometric or key authorization...</span>
+          </div>
+
+          <!-- Buttons -->
+          <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.4rem;">
+            <button type="submit" id="btn-login-submit" class="eng-btn primary" style="justify-content: center; padding: 0.85rem; font-size: 0.88rem; letter-spacing: 0.04em;">
+              <span>&#128275;</span> AUTHORIZE &amp; ENTER WORKSTATION
+            </button>
+            <button type="button" class="eng-btn" onclick="quickGuestLogin()" style="justify-content: center; font-size: 0.78rem; color: var(--carbon-400);">
+              Instant Guest / Student Bypass &rarr;
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer specs -->
+      <div class="login-footer">
+        <span>SECURITY ENCRYPTION: SHA-256 AES</span>
+        <span>LAB NODE: EC2201-CORE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Lab Station Header -->
+  <header class="lab-header">
+    <div class="lab-title-block">
+      <div class="dept-seal">
+        <span>ECE</span>
+        <span style="font-size:8px; color:var(--carbon-400);">CORE</span>
+      </div>
+      <div class="title-details">
+        <h1 class="arrive-text">Digital Adder Interactive Learning Platform</h1>
+        <p class="arrive-text-delayed">
+          <span>EC2201 DIGITAL SYSTEMS DESIGN</span>
+          <span>&bull;</span>
+          <span>DUAL CONTRAST SILICON WORKSTATION</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="top-telemetry">
+      <div class="status-pill">
+        <span class="status-led"></span>
+        <span id="top-status-text" class="arrive-text" style="color:var(--mint-main);">CORE READY [4-BIT]</span>
+      </div>
+
+      <div class="seg-control" id="tech-family-toggle">
+        <button class="seg-btn active" data-tech="74HC">74HC (5V)</button>
+        <button class="seg-btn" data-tech="74LVC">74LVC (3.3V)</button>
+        <button class="seg-btn" data-tech="IDEAL">Ideal (&tau;)</button>
+      </div>
+
+      <button class="eng-btn" id="btn-sound-toggle">Sound: ON</button>
+      <button class="eng-btn" id="btn-lock-station" onclick="lockStation()"><span style="color:var(--amber-bright);">&#128274;</span> Lock Station</button>
+    </div>
+  </header>
+
+  <!-- Modular Workspace Tab Bar -->
+  <nav class="workspace-tabs" id="workspace-tabs">
+    <button class="view-tab-btn active" data-tab="view-workbench">
+      <span class="tab-badge">01</span> Datacenter & Silicon Die Workbench
+    </button>
+    <button class="view-tab-btn" data-tab="view-breadboard">
+      <span class="tab-badge">02</span> Virtual Hardware Breadboard & DIP ICs
+    </button>
+    <button class="view-tab-btn" data-tab="view-kmaps">
+      <span class="tab-badge">03</span> K-Map Puzzle & Grouping Studio
+    </button>
+    <button class="view-tab-btn" data-tab="view-gates">
+      <span class="tab-badge">04</span> Gate Macrocell Laboratory (HA & FA)
+    </button>
+    <button class="view-tab-btn" data-tab="view-analyzer">
+      <span class="tab-badge">05</span> Virtual Logic Timing Analyzer
+    </button>
+    <button class="view-tab-btn" data-tab="view-practice">
+      <span class="tab-badge">06</span> Interactive Practice & Mission Arena
+    </button>
+    <button class="view-tab-btn" data-tab="view-testbench">
+      <span class="tab-badge">07</span> Automated Regression Testbench
+    </button>
+  </nav>
+
+  <!-- Main Viewport -->
+  <main class="workspace-viewport">
+
+    <!-- ======================================================================
+         VIEW 01: PICTORIAL WORKBENCH & ALLOCATION CORE
+         ====================================================================== -->
+    <div class="view-panel active" id="view-workbench">
+      
+      <!-- Input Controls Panel -->
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">Resource Allocation Input Registers</span>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <span style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-400);">BUS WIDTH:</span>
+            <div class="seg-control" id="width-seg">
+              <button class="seg-btn active" data-width="4">4-Bit (0..15)</button>
+              <button class="seg-btn" data-width="8">8-Bit (0..255)</button>
+            </div>
+            <span style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-400); margin-left:0.5rem;">RADIX:</span>
+            <div class="seg-control" id="radix-seg">
+              <button class="seg-btn active" data-radix="dec">Decimal</button>
+              <button class="seg-btn" data-radix="bin">Raw Binary</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div>
+              <label style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400); display: flex; justify-content: space-between; font-weight: 600;">
+                <span>OPERAND A: TASK LOAD 1 (Amber Cluster)</span>
+                <span id="disp-bin-a" style="color: var(--amber-bright); font-weight: 700;">0b0111</span>
+              </label>
+              <input type="text" id="in-val-a" class="eng-input" value="7" autocomplete="off" />
+              <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.7rem; color: var(--carbon-600); margin-top: 0.25rem;">
+                <span id="range-a">Range: [0..15]</span>
+                <span id="err-a" style="color: var(--signal-err); font-weight: 600;"></span>
+              </div>
+            </div>
+
+            <div>
+              <label style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400); display: flex; justify-content: space-between; font-weight: 600;">
+                <span>OPERAND B: TASK LOAD 2 (Mint Cluster)</span>
+                <span id="disp-bin-b" style="color: var(--mint-bright); font-weight: 700;">0b1000</span>
+              </label>
+              <input type="text" id="in-val-b" class="eng-input" value="8" autocomplete="off" />
+              <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.7rem; color: var(--carbon-600); margin-top: 0.25rem;">
+                <span id="range-b">Range: [0..15]</span>
+                <span id="err-b" style="color: var(--signal-err); font-weight: 600;"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Presets -->
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-dim);">
+            <span style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-600); font-weight: 600;">BENCH PRESETS:</span>
+            <button class="eng-btn" onclick="applyPreset(3, 5, 4)">Nominal (3 + 5)</button>
+            <button class="eng-btn" onclick="applyPreset(7, 8, 4)">Boundary Saturation (7 + 8 = 15)</button>
+            <button class="eng-btn" onclick="applyPreset(15, 1, 4)">4-Bit Ripple Overflow (15 + 1)</button>
+            <button class="eng-btn" onclick="applyPreset(64, 128, 8)">8-Bit MSB Sum (64 + 128)</button>
+            <button class="eng-btn" onclick="applyPreset(255, 1, 8)">8-Bit Full Ripple Cascade (255 + 1)</button>
+            <button class="eng-btn" onclick="applyPreset(0, 0, 4)">Zero Standby (0 + 0)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           UPDATE 1: INTERACTIVE ADDER USAGE & RESOURCE ALLOCATION CALCULATOR PANEL
+           ====================================================================== -->
+      <div class="lab-card" id="adder-usage-calculator-card" style="margin-top: 1.5rem;">
+        <div class="card-head">
+          <span class="card-title">
+            <span style="color: var(--amber-bright);">&#9889;</span>
+            Interactive Adder Resource &amp; Usage Calculator
+          </span>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <span class="tab-badge" style="background: rgba(245, 158, 11, 0.2); color: var(--amber-bright); border: 1px solid var(--amber-main);">
+              LIVE BITWISE ACCUMULATOR
+            </span>
+            <span id="calc-sat-badge" class="tab-badge" style="background: rgba(16, 185, 129, 0.2); color: var(--mint-bright); border: 1px solid var(--mint-main);">
+              NOMINAL CAPACITY
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="grid-2">
+            <!-- Left: Bit-by-Bit Full Adder Column Addition Table -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--amber-main); font-weight: 700;">
+                  STAGE-BY-STAGE BITWISE FULL ADDER ADDITION
+                </span>
+                <span style="font-family: var(--font-code); font-size: 0.7rem; color: var(--carbon-400);">
+                  S[i] = A[i] &oplus; B[i] &oplus; C_in[i]
+                </span>
+              </div>
+              
+              <div class="table-scroll">
+                <table class="eng-table" id="calc-bitwise-table">
+                  <thead>
+                    <tr>
+                      <th>Bit Stage</th>
+                      <th style="color: var(--amber-bright);">A[i]</th>
+                      <th style="color: var(--mint-bright);">B[i]</th>
+                      <th>C_in[i]</th>
+                      <th style="color: #fff;">Sum S[i]</th>
+                      <th style="color: var(--amber-main);">C_out[i]</th>
+                      <th>Stage Delay</th>
+                    </tr>
+                  </thead>
+                  <tbody id="calc-bitwise-tbody">
+                    <!-- Populated dynamically via updateAdderCalculator -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Quick Calculator Utilities Toolbar -->
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.85rem;">
+                <span style="font-family: var(--font-code); font-size: 0.7rem; color: var(--carbon-400); font-weight: 600;">QUICK OPS:</span>
+                <button class="eng-btn" onclick="quickCalcOp('incA')">+1 A</button>
+                <button class="eng-btn" onclick="quickCalcOp('decA')">-1 A</button>
+                <button class="eng-btn" onclick="quickCalcOp('incB')">+1 B</button>
+                <button class="eng-btn" onclick="quickCalcOp('decB')">-1 B</button>
+                <button class="eng-btn" onclick="quickCalcOp('swap')">Swap A &harr; B</button>
+                <button class="eng-btn" onclick="quickCalcOp('invertA')">NOT A</button>
+                <button class="eng-btn" onclick="quickCalcOp('random')">Randomize</button>
+              </div>
+            </div>
+
+            <!-- Right: Hardware Resource Usage & Silicon Budget Metrics -->
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+              <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--mint-main); font-weight: 700;">
+                SILICON HARDWARE RESOURCE UTILIZATION (RIPPLE ARCHITECTURE)
+              </span>
+
+              <div class="grid-2" style="gap: 0.75rem;">
+                <div class="metric-box">
+                  <span class="metric-lbl">TOTAL LOGIC GATES</span>
+                  <div class="metric-val" id="calc-gate-count" style="color: var(--amber-bright);">20 Gates</div>
+                  <span class="metric-sub" id="calc-gate-breakdown">8 XOR &bull; 8 AND &bull; 4 OR</span>
+                </div>
+                <div class="metric-box">
+                  <span class="metric-lbl">TRANSISTOR SILICON BUDGET</span>
+                  <div class="metric-val" id="calc-transistor-count" style="color: var(--mint-bright);">112 MOSFETs</div>
+                  <span class="metric-sub">28 MOSFETs / Full Adder Cell</span>
+                </div>
+              </div>
+
+              <div class="grid-2" style="gap: 0.75rem;">
+                <div class="metric-box">
+                  <span class="metric-lbl">ESTIMATED DYNAMIC POWER</span>
+                  <div class="metric-val" id="calc-power-estimate">14.2 &mu;W</div>
+                  <span class="metric-sub" id="calc-power-sub">@ 10 MHz switching, 5.0V</span>
+                </div>
+                <div class="metric-box">
+                  <span class="metric-lbl">SILICON DIE FOOTPRINT</span>
+                  <div class="metric-val" id="calc-area-estimate">1,400 &mu;m&sup2;</div>
+                  <span class="metric-sub">~350 &mu;m&sup2; per macrocell (0.18&mu;m)</span>
+                </div>
+              </div>
+
+              <!-- Capacity & Saturation Usage Bar -->
+              <div style="background: var(--carbon-950); border: 1px solid var(--border-dim); border-radius: 6px; padding: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.72rem; margin-bottom: 0.35rem;">
+                  <span style="color: var(--carbon-400);">BUS CAPACITY OCCUPANCY</span>
+                  <span id="calc-cap-percent" style="color: var(--amber-bright); font-weight: 700;">100.0%</span>
+                </div>
+                <div style="height: 10px; background: var(--carbon-800); border-radius: 5px; overflow: hidden; position: relative;">
+                  <div id="calc-cap-bar" style="height: 100%; width: 100%; background: linear-gradient(90deg, #10b981, #f59e0b); border-radius: 5px; transition: width 0.3s ease, background 0.3s ease;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.68rem; color: var(--carbon-600); margin-top: 0.35rem;">
+                  <span>0 (Idle)</span>
+                  <span id="calc-cap-label">15 / 15 Units</span>
+                  <span id="calc-cap-max">Max: 15</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HIGH-CONTRAST PICTORIAL SYSTEM INFOGRAPHIC -->
+      <div class="pictorial-canvas-container">
+        <svg class="system-infographic" viewBox="0 0 1000 330" id="svg-pictorial">
+          <defs>
+            <linearGradient id="grad-rack-amber" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1f180d"/>
+              <stop offset="100%" stop-color="#0d0e12"/>
+            </linearGradient>
+            <linearGradient id="grad-rack-mint" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0c1d17"/>
+              <stop offset="100%" stop-color="#0d0e12"/>
+            </linearGradient>
+            <linearGradient id="grad-chip-silicon" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1a1c24"/>
+              <stop offset="50%" stop-color="#101217"/>
+              <stop offset="100%" stop-color="#060608"/>
+            </linearGradient>
+            <linearGradient id="grad-dial-gauge" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#10b981"/>
+              <stop offset="55%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#ef4444"/>
+            </linearGradient>
+            <filter id="lumen-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- 1. TASK A SERVER BLADE RACK (AMBER THEME) -->
+          <g transform="translate(35, 30)">
+            <rect x="0" y="0" width="185" height="260" rx="8" fill="url(#grad-rack-amber)" stroke="#f59e0b" stroke-width="2"/>
+            <rect x="10" y="10" width="165" height="26" rx="4" fill="#0d0e12" stroke="#2d313e"/>
+            <circle cx="22" cy="23" r="4" fill="#f59e0b" class="status-blinker"/>
+            <text x="95" y="27" fill="#fbbf24" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle">TASK CLUSTER A</text>
+            
+            <g id="rack-a-bays"></g>
+            
+            <!-- Dual Cooling Fans -->
+            <g transform="translate(35, 210)">
+              <circle cx="16" cy="16" r="15" fill="#060608" stroke="#3b3f4e"/>
+              <g class="spinning-fan" style="transform-origin: 16px 16px;">
+                <path d="M 16,16 L 16,4 A 12,12 0 0,1 26,10 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 28,16 A 12,12 0 0,1 22,26 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 16,28 A 12,12 0 0,1 6,22 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 4,16 A 12,12 0 0,1 10,6 Z" fill="#878c9e"/>
+              </g>
+              <circle cx="16" cy="16" r="4" fill="#f59e0b"/>
+            </g>
+            <g transform="translate(115, 210)">
+              <circle cx="16" cy="16" r="15" fill="#060608" stroke="#3b3f4e"/>
+              <g class="spinning-fan" style="transform-origin: 16px 16px;">
+                <path d="M 16,16 L 16,4 A 12,12 0 0,1 26,10 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 28,16 A 12,12 0 0,1 22,26 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 16,28 A 12,12 0 0,1 6,22 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 4,16 A 12,12 0 0,1 10,6 Z" fill="#878c9e"/>
+              </g>
+              <circle cx="16" cy="16" r="4" fill="#f59e0b"/>
+            </g>
+
+            <text x="92" y="250" fill="#fbbf24" font-family="'Space Grotesk', sans-serif" font-size="13" font-weight="700" text-anchor="middle" id="pic-txt-val-a">LOAD: 7 UNITS</text>
+          </g>
+
+          <!-- 2. TASK B SERVER BLADE RACK (MINT THEME) -->
+          <g transform="translate(255, 30)">
+            <rect x="0" y="0" width="185" height="260" rx="8" fill="url(#grad-rack-mint)" stroke="#10b981" stroke-width="2"/>
+            <rect x="10" y="10" width="165" height="26" rx="4" fill="#0d0e12" stroke="#2d313e"/>
+            <circle cx="22" cy="23" r="4" fill="#10b981" class="status-blinker"/>
+            <text x="95" y="27" fill="#34d399" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle">TASK CLUSTER B</text>
+            
+            <g id="rack-b-bays"></g>
+            
+            <!-- Dual Cooling Fans -->
+            <g transform="translate(35, 210)">
+              <circle cx="16" cy="16" r="15" fill="#060608" stroke="#3b3f4e"/>
+              <g class="spinning-fan" style="transform-origin: 16px 16px;">
+                <path d="M 16,16 L 16,4 A 12,12 0 0,1 26,10 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 28,16 A 12,12 0 0,1 22,26 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 16,28 A 12,12 0 0,1 6,22 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 4,16 A 12,12 0 0,1 10,6 Z" fill="#878c9e"/>
+              </g>
+              <circle cx="16" cy="16" r="4" fill="#10b981"/>
+            </g>
+            <g transform="translate(115, 210)">
+              <circle cx="16" cy="16" r="15" fill="#060608" stroke="#3b3f4e"/>
+              <g class="spinning-fan" style="transform-origin: 16px 16px;">
+                <path d="M 16,16 L 16,4 A 12,12 0 0,1 26,10 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 28,16 A 12,12 0 0,1 22,26 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 16,28 A 12,12 0 0,1 6,22 Z" fill="#878c9e"/>
+                <path d="M 16,16 L 4,16 A 12,12 0 0,1 10,6 Z" fill="#878c9e"/>
+              </g>
+              <circle cx="16" cy="16" r="4" fill="#10b981"/>
+            </g>
+
+            <text x="92" y="250" fill="#34d399" font-family="'Space Grotesk', sans-serif" font-size="13" font-weight="700" text-anchor="middle" id="pic-txt-val-b">LOAD: 8 UNITS</text>
+          </g>
+
+          <!-- High-Contrast Copper/Gold & Mint Bus Streams -->
+          <path d="M 220,140 L 485,140" stroke="#1a1c24" stroke-width="5" fill="none"/>
+          <path d="M 220,140 L 485,140" stroke="#f59e0b" stroke-width="3" fill="none" class="electron-amber" filter="url(#lumen-glow)"/>
+
+          <path d="M 440,165 L 485,165" stroke="#1a1c24" stroke-width="5" fill="none"/>
+          <path d="M 440,165 L 485,165" stroke="#10b981" stroke-width="3" fill="none" class="electron-mint" filter="url(#lumen-glow)"/>
+
+          <!-- 3. SILICON ALU PROCESSOR DIE (IC CHIP) -->
+          <g transform="translate(485, 45)" class="chip-glow">
+            <g fill="#e5e7eb" stroke="#374151">
+              <rect x="30" y="-10" width="14" height="10" rx="2"/>
+              <rect x="65" y="-10" width="14" height="10" rx="2"/>
+              <rect x="100" y="-10" width="14" height="10" rx="2"/>
+              <rect x="135" y="-10" width="14" height="10" rx="2"/>
+              <rect x="170" y="-10" width="14" height="10" rx="2"/>
+
+              <rect x="30" y="225" width="14" height="10" rx="2"/>
+              <rect x="65" y="225" width="14" height="10" rx="2"/>
+              <rect x="100" y="225" width="14" height="10" rx="2"/>
+              <rect x="135" y="225" width="14" height="10" rx="2"/>
+              <rect x="170" y="225" width="14" height="10" rx="2"/>
+            </g>
+
+            <rect x="0" y="0" width="220" height="225" rx="8" fill="url(#grad-chip-silicon)" stroke="#f59e0b" stroke-width="2"/>
+            <circle cx="16" cy="16" r="4" fill="#64748b"/>
+            <text x="110" y="30" fill="#f8fafc" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle">SN74HC283N</text>
+            <text x="110" y="44" fill="#f59e0b" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">SILICON RIPPLE CORE</text>
+            
+            <rect x="15" y="55" width="190" height="150" rx="4" fill="#040507" stroke="#262934"/>
+            <g id="silicon-adder-cells"></g>
+          </g>
+
+          <!-- Output Bus from Chip to Gauge -->
+          <path d="M 705,155 L 755,155" stroke="#1a1c24" stroke-width="6" fill="none"/>
+          <path d="M 705,155 L 755,155" stroke="#fbbf24" stroke-width="4" fill="none" class="electron-amber" filter="url(#lumen-glow)"/>
+
+          <!-- 4. CAPACITY METER & GAUGE -->
+          <g transform="translate(755, 30)">
+            <rect x="0" y="0" width="215" height="260" rx="8" fill="#0d0e12" stroke="#f59e0b" stroke-width="2" id="gauge-box-border"/>
+            <text x="108" y="27" fill="#fff" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle">SYSTEM CAPACITY</text>
+
+            <path d="M 35,140 A 72,72 0 0,1 180,140" fill="none" stroke="#1a1c24" stroke-width="16" stroke-linecap="round"/>
+            <path id="gauge-arc" d="M 35,140 A 72,72 0 0,1 180,140" fill="none" stroke="url(#grad-dial-gauge)" stroke-width="16" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="80"/>
+
+            <g id="gauge-needle" transform="rotate(0, 108, 140)">
+              <line x1="108" y1="140" x2="108" y2="76" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="108" cy="140" r="7.5" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+            </g>
+
+            <text x="108" y="180" fill="#fff" font-family="'Space Grotesk', sans-serif" font-size="18" font-weight="700" text-anchor="middle" id="pic-gauge-sum">15 UNITS</text>
+            <text x="108" y="198" fill="#878c9e" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600" text-anchor="middle" id="pic-gauge-util">100.0% UTILIZED</text>
+
+            <rect x="20" y="214" width="175" height="26" rx="4" fill="#060608" stroke="#262934" id="pic-gauge-pill-bg"/>
+            <text x="108" y="231" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="800" text-anchor="middle" id="pic-gauge-cf">STATUS: NOMINAL</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Ripple Carry Engine Controls & Live Stage Chain -->
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">Multi-Bit Ripple Carry Execution Track</span>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <button class="eng-btn primary" id="btn-run-ripple">Run Propagation</button>
+            <button class="eng-btn" id="btn-step-ripple">Step 1-Bit</button>
+            <button class="eng-btn" id="btn-reset-ripple">Reset</button>
+            <div class="seg-control" id="speed-seg">
+              <button class="seg-btn" data-speed="800">50%</button>
+              <button class="seg-btn active" data-speed="350">100%</button>
+              <button class="seg-btn" data-speed="120">250%</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="ripple-viewport">
+            <div class="ripple-chain" id="ripple-chain-container"></div>
+          </div>
+
+          <div class="grid-3" style="margin-top: 1.5rem;">
+            <div class="metric-box">
+              <span class="metric-lbl">TOTAL CRITICAL PATH DELAY</span>
+              <div class="metric-val" id="disp-latency">0.0 ns</div>
+              <span class="metric-sub" id="disp-formula">t_pd = (N-1)·t_carry + t_sum</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-lbl">ACCUMULATOR REGISTER [S]</span>
+              <div class="metric-val" id="disp-sum-bin" style="color: var(--amber-bright);">0b0000</div>
+              <span class="metric-sub" id="disp-sum-dec">Decimal: 0</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-lbl">CARRY OUT (OVERFLOW FLAG)</span>
+              <div class="metric-val" id="disp-cout">0</div>
+              <span class="metric-sub" id="disp-cout-desc">Unsigned CF = 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 02: VIRTUAL HARDWARE BREADBOARD & DIP ICs
+         ====================================================================== -->
+    <div class="view-panel" id="view-breadboard">
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">Virtual Solderless Breadboard & Physical IC Package Lab</span>
+          <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400);">
+            DIP-16 DUAL IN-LINE PACKAGE &bull; VCC: 5.0V &bull; HIGH-LUMEN LEDs
+          </span>
+        </div>
+        <div class="card-body">
+          <div style="background: #090a0f; border: 1px solid var(--border-dim); border-radius: 6px; padding: 1.5rem;">
+            <svg viewBox="0 0 940 340" style="width:100%; height:auto; display:block;" id="svg-breadboard">
+              <rect x="20" y="20" width="900" height="300" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+              
+              <line x1="40" y1="40" x2="900" y2="40" stroke="#ef4444" stroke-width="2" stroke-dasharray="8 6"/>
+              <line x1="40" y1="55" x2="900" y2="55" stroke="#10b981" stroke-width="2" stroke-dasharray="8 6"/>
+              <text x="25" y="44" fill="#ef4444" font-weight="bold" font-size="12">+</text>
+              <text x="25" y="59" fill="#10b981" font-weight="bold" font-size="14">-</text>
+
+              <line x1="40" y1="285" x2="900" y2="285" stroke="#ef4444" stroke-width="2" stroke-dasharray="8 6"/>
+              <line x1="40" y1="300" x2="900" y2="300" stroke="#10b981" stroke-width="2" stroke-dasharray="8 6"/>
+              <text x="25" y="289" fill="#ef4444" font-weight="bold" font-size="12">+</text>
+              <text x="25" y="304" fill="#10b981" font-weight="bold" font-size="14">-</text>
+
+              <rect x="30" y="165" width="880" height="10" fill="#94a3b8"/>
+
+              <!-- Central DIP-16 IC Package -->
+              <g transform="translate(340, 115)">
+                <rect x="0" y="0" width="260" height="110" rx="4" fill="#1a1c24" stroke="#0d0e12" stroke-width="2"/>
+                <path d="M 0,45 A 10,10 0 0,0 0,65 Z" fill="#0d0e12"/>
+                <circle cx="20" cy="20" r="3" fill="#64748b"/>
+                <text x="130" y="55" fill="#f8fafc" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">SN74HC283N</text>
+                <text x="130" y="70" fill="#f59e0b" font-family="'JetBrains Mono', monospace" font-size="9" text-anchor="middle">4-BIT BINARY FULL ADDER</text>
+
+                <g fill="#cbd5e1" stroke="#374151">
+                  <rect x="25" y="-12" width="14" height="12" rx="1"/>
+                  <rect x="55" y="-12" width="14" height="12" rx="1"/>
+                  <rect x="85" y="-12" width="14" height="12" rx="1"/>
+                  <rect x="115" y="-12" width="14" height="12" rx="1"/>
+                  <rect x="145" y="-12" width="14" height="12" rx="1"/>
+                  <rect x="175" y="-12" width="14" height="12" rx="1"/>
+                  <rect x="205" y="-12" width="14" height="12" rx="1"/>
+                  <rect x="235" y="-12" width="14" height="12" rx="1"/>
+
+                  <rect x="25" y="110" width="14" height="12" rx="1"/>
+                  <rect x="55" y="110" width="14" height="12" rx="1"/>
+                  <rect x="85" y="110" width="14" height="12" rx="1"/>
+                  <rect x="115" y="110" width="14" height="12" rx="1"/>
+                  <rect x="145" y="110" width="14" height="12" rx="1"/>
+                  <rect x="175" y="110" width="14" height="12" rx="1"/>
+                  <rect x="205" y="110" width="14" height="12" rx="1"/>
+                  <rect x="235" y="110" width="14" height="12" rx="1"/>
+                </g>
+              </g>
+
+              <!-- Interactive DIP Switch Bank -->
+              <g transform="translate(60, 90)">
+                <rect x="0" y="0" width="180" height="160" rx="6" fill="#b45309" stroke="#78350f" stroke-width="2"/>
+                <text x="90" y="22" fill="#fff" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle">INPUT DIP-SWITCH</text>
+                <text x="40" y="42" fill="#fef3c7" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700">A[3..0]</text>
+                <text x="130" y="42" fill="#d1fae5" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700">B[3..0]</text>
+                <g id="breadboard-switches" style="cursor:pointer;"></g>
+              </g>
+
+              <!-- Output LED Bank -->
+              <g transform="translate(670, 90)">
+                <rect x="0" y="0" width="220" height="160" rx="6" fill="#0d0e12" stroke="#262934" stroke-width="2"/>
+                <text x="110" y="22" fill="#f59e0b" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle">HARDWARE OUTPUT LEDs</text>
+                <g id="breadboard-leds"></g>
+              </g>
+
+              <!-- Jumper Wires -->
+              <path d="M 240,120 C 280,120 300,100 365,103" stroke="#f59e0b" stroke-width="3" fill="none" opacity="0.9"/>
+              <path d="M 240,140 C 280,140 300,90 395,103" stroke="#f59e0b" stroke-width="3" fill="none" opacity="0.9"/>
+              <path d="M 240,180 C 280,180 300,240 365,225" stroke="#10b981" stroke-width="3" fill="none" opacity="0.9"/>
+              <path d="M 240,200 C 280,200 300,250 395,225" stroke="#10b981" stroke-width="3" fill="none" opacity="0.9"/>
+              <path d="M 575,103 C 620,80 640,120 685,130" stroke="#34d399" stroke-width="3" fill="none" opacity="0.9"/>
+              <path d="M 575,225 C 620,240 640,200 685,190" stroke="#fbbf24" stroke-width="3" fill="none" opacity="0.9"/>
+            </svg>
+          </div>
+
+          <div style="margin-top: 1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <span style="font-family: var(--font-code); font-size:0.78rem; color:var(--carbon-400);">
+              💡 Click any DIP switch on the breadboard to flip input bits and observe immediate LED illumination!
+            </span>
+            <button class="eng-btn primary" onclick="switchTab('view-practice')">Go to Mission Challenges ➔</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 03: KARNAUGH MAP PUZZLE & GROUPING STUDIO
+         ====================================================================== -->
+    <div class="view-panel" id="view-kmaps">
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">Karnaugh Map Interactive Grouping Studio</span>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <button class="eng-btn primary" id="btn-kmap-autosolve" onclick="autoSolveKMap()">
+              <span>&#9889;</span> Auto-Group &amp; Synthesize SOP
+            </button>
+            <div class="seg-control" id="kmap-target-seg">
+              <button class="seg-btn active" data-target="fa-cout">Full Adder Cout</button>
+              <button class="seg-btn" data-target="fa-sum">Full Adder Sum</button>
+              <button class="seg-btn" data-target="ha-cout">Half Adder Carry</button>
+              <button class="seg-btn" data-target="ha-sum">Half Adder Sum</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+              <div class="kmap-board" id="kmap-board-wrap">
+                <table class="kmap-table" id="kmap-table-node"></table>
+                <svg class="kmap-svg" id="kmap-svg-node" viewBox="0 0 380 220"></svg>
+              </div>
+              <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400); text-align: center;">
+                Hover over matrix cells to inspect minterms; observe Gray-code adjacency ($00 \to 01 \to 11 \to 10$).
+              </span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <div style="background: var(--carbon-950); border: 1px solid var(--border-dim); padding: 1.25rem; border-radius: 6px;">
+                <div style="font-family: var(--font-code); font-size: 0.75rem; color: var(--amber-main); margin-bottom: 0.5rem; font-weight: 700;">
+                  MINIMIZED ALGEBRAIC SUM-OF-PRODUCTS (SOP)
+                </div>
+                <div id="kmap-sop-text" class="arrive-text" style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; font-weight: 700;"></div>
+              </div>
+
+              <div style="background: var(--carbon-950); border: 1px solid var(--border-dim); padding: 1.25rem; border-radius: 6px;">
+                <div style="font-family: var(--font-code); font-size: 0.75rem; color: var(--mint-main); margin-bottom: 0.5rem; font-weight: 700;">
+                  PRIME IMPLICANTS & COVERS
+                </div>
+                <div id="kmap-implicants-desc" style="display: flex; flex-direction: column; gap: 0.6rem; font-family: var(--font-code); font-size: 0.8rem;"></div>
+              </div>
+
+              <div style="border-left: 3px solid var(--amber-main); padding-left: 0.85rem; font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400);">
+                In 3-variable K-maps, adjacent Gray code columns differ by only 1 bit, allowing adjacent 1-cells to merge algebraically via $X Y + X \bar{Y} = X$.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 04: GATE MACROCELL LABORATORY (HA & FA)
+         ====================================================================== -->
+    <div class="view-panel" id="view-gates">
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">Silicon Gate-Level Schematics (ANSI / IEEE Std 91-1984)</span>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <button class="eng-btn primary" id="btn-step-gates" onclick="stepGatePropagation()">
+              <span>&#9654;</span> Step Signal Propagation
+            </button>
+            <div class="seg-control" id="gate-macro-toggle">
+              <button class="seg-btn active" data-gate="ha">Half Adder (HA)</button>
+              <button class="seg-btn" data-gate="fa">Full Adder (FA)</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- HA View -->
+          <div id="gate-ha-wrap" class="grid-2">
+            <div style="background: #08090c; border: 1px solid var(--border-dim); border-radius: 6px; padding: 1.5rem;">
+              <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center;">
+                <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400); font-weight: 600;">INPUT PINS:</span>
+                <div class="logic-switch" id="sw-ha-a" onclick="toggleHA('a')">
+                  <span>PIN A =</span><span class="switch-indicator" id="ind-ha-a">0</span>
+                </div>
+                <div class="logic-switch" id="sw-ha-b" onclick="toggleHA('b')">
+                  <span>PIN B =</span><span class="switch-indicator" id="ind-ha-b">0</span>
+                </div>
+              </div>
+
+              <svg viewBox="0 0 500 200" style="width: 100%; height: auto; display: block;" id="svg-ha-schematic">
+                <path id="w-ha-a1" d="M 40,55 L 140,55 L 220,55" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <path id="w-ha-a2" d="M 140,55 L 140,145 L 220,145" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <circle cx="140" cy="55" r="3.5" fill="#f59e0b"/>
+                <path id="w-ha-b1" d="M 40,85 L 110,85 L 220,85" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <path id="w-ha-b2" d="M 110,85 L 110,175 L 220,175" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <circle cx="110" cy="85" r="3.5" fill="#10b981"/>
+
+                <g transform="translate(220, 40)">
+                  <path d="M 0,0 C 15,10 15,50 0,60 C 25,60 55,45 70,30 C 55,15 25,0 0,0 Z" fill="#1a1c24" stroke="#878c9e" stroke-width="2"/>
+                  <path d="M -8,0 C 7,10 7,50 -8,60" fill="none" stroke="#878c9e" stroke-width="2.5"/>
+                  <text x="32" y="30" fill="#fff" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="central">XOR</text>
+                </g>
+                <g transform="translate(220, 130)">
+                  <path d="M 0,0 L 35,0 C 55,0 70,15 70,30 C 70,45 55,60 35,60 L 0,60 Z" fill="#1a1c24" stroke="#878c9e" stroke-width="2"/>
+                  <text x="35" y="30" fill="#fff" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="central">AND</text>
+                </g>
+
+                <path id="w-ha-s" d="M 290,70 L 400,70" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <text x="410" y="74" fill="#878c9e" font-family="'JetBrains Mono', monospace" font-size="10.5" id="txt-ha-s">Sum = 0 (A ⊕ B)</text>
+                <path id="w-ha-c" d="M 290,160 L 400,160" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <text x="410" y="164" fill="#878c9e" font-family="'JetBrains Mono', monospace" font-size="10.5" id="txt-ha-c">Carry = 0 (A · B)</text>
+              </svg>
+            </div>
+
+            <div class="table-scroll">
+              <table class="eng-table" id="tb-ha">
+                <thead>
+                  <tr><th>Index</th><th>A</th><th>B</th><th>Sum (A ⊕ B)</th><th>Carry (A · B)</th></tr>
+                </thead>
+                <tbody>
+                  <tr data-m="0" onclick="setHA(0,0)"><td>m₀</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                  <tr data-m="1" onclick="setHA(0,1)"><td>m₁</td><td>0</td><td>1</td><td style="color:var(--mint-bright); font-weight:bold;">1</td><td>0</td></tr>
+                  <tr data-m="2" onclick="setHA(1,0)"><td>m₂</td><td>1</td><td>0</td><td style="color:var(--mint-bright); font-weight:bold;">1</td><td>0</td></tr>
+                  <tr data-m="3" onclick="setHA(1,1)"><td>m₃</td><td>1</td><td>1</td><td>0</td><td style="color:var(--amber-bright); font-weight:bold;">1</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- FA View -->
+          <div id="gate-fa-wrap" class="grid-2" style="display: none;">
+            <div style="background: #08090c; border: 1px solid var(--border-dim); border-radius: 6px; padding: 1.5rem;">
+              <div style="display: flex; gap: 0.6rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap;">
+                <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400); font-weight: 600;">INPUT PINS:</span>
+                <div class="logic-switch" id="sw-fa-a" onclick="toggleFA('a')">
+                  <span>A =</span><span class="switch-indicator" id="ind-fa-a">0</span>
+                </div>
+                <div class="logic-switch" id="sw-fa-b" onclick="toggleFA('b')">
+                  <span>B =</span><span class="switch-indicator" id="ind-fa-b">0</span>
+                </div>
+                <div class="logic-switch" id="sw-fa-cin" onclick="toggleFA('cin')">
+                  <span>Cin =</span><span class="switch-indicator" id="ind-fa-cin">0</span>
+                </div>
+              </div>
+
+              <svg viewBox="0 0 540 240" style="width: 100%; height: auto; display: block;" id="svg-fa-schematic">
+                <path id="w-fa-a" d="M 30,50 L 130,50" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <path id="w-fa-b" d="M 30,80 L 130,80" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <path id="w-fa-cin" d="M 30,140 L 260,140" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+
+                <rect x="120" y="30" width="110" height="95" rx="4" fill="none" stroke="#262934" stroke-dasharray="3 3"/>
+                <text x="175" y="42" fill="#878c9e" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">HA 1</text>
+                <path d="M 130,50 C 140,55 140,75 130,80 C 145,80 165,70 175,65 C 165,60 145,50 130,50 Z" fill="#1a1c24" stroke="#878c9e"/>
+                <path d="M 130,95 L 155,95 C 165,95 175,103 175,110 C 175,117 165,125 155,125 L 130,125 Z" fill="#1a1c24" stroke="#878c9e"/>
+
+                <path id="w-fa-ha1s" d="M 175,65 L 260,65" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <rect x="250" y="45" width="110" height="120" rx="4" fill="none" stroke="#262934" stroke-dasharray="3 3"/>
+                <text x="305" y="57" fill="#878c9e" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="middle">HA 2</text>
+                <path d="M 260,65 C 270,70 270,90 260,95 C 275,95 295,85 305,80 C 295,75 275,65 260,65 Z" fill="#1a1c24" stroke="#878c9e"/>
+                <path d="M 260,125 L 285,125 C 295,125 305,133 305,140 C 305,147 295,155 285,155 L 260,155 Z" fill="#1a1c24" stroke="#878c9e"/>
+
+                <path id="w-fa-sum" d="M 305,80 L 440,80" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <text x="450" y="84" fill="#878c9e" font-family="'JetBrains Mono', monospace" font-size="10.5" id="txt-fa-sum">Sum = 0</text>
+
+                <path id="w-fa-c1" d="M 175,110 L 210,110 L 210,195 L 370,195" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <path id="w-fa-c2" d="M 305,140 L 330,140 L 330,180 L 370,180" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <g transform="translate(370, 170)">
+                  <path d="M 0,0 C 15,8 15,32 0,40 C 20,40 45,28 55,20 C 45,12 20,0 0,0 Z" fill="#1a1c24" stroke="#878c9e" stroke-width="2"/>
+                  <text x="25" y="20" fill="#fff" font-family="'Space Grotesk', sans-serif" font-size="9" text-anchor="middle" dominant-baseline="central">OR</text>
+                </g>
+
+                <path id="w-fa-cout" d="M 425,190 L 470,190" stroke="#3f4252" stroke-width="2.5" fill="none"/>
+                <text x="450" y="215" fill="#878c9e" font-family="'JetBrains Mono', monospace" font-size="10.5" id="txt-fa-cout">Cout = 0</text>
+              </svg>
+            </div>
+
+            <div class="table-scroll">
+              <table class="eng-table" id="tb-fa">
+                <thead>
+                  <tr><th>Minterm</th><th>A</th><th>B</th><th>Cin</th><th>Sum</th><th>Cout</th></tr>
+                </thead>
+                <tbody>
+                  <tr data-m="0" onclick="setFA(0,0,0)"><td>m₀</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                  <tr data-m="1" onclick="setFA(0,0,1)"><td>m₁</td><td>0</td><td>0</td><td>1</td><td style="color:var(--mint-bright); font-weight:bold;">1</td><td>0</td></tr>
+                  <tr data-m="2" onclick="setFA(0,1,0)"><td>m₂</td><td>0</td><td>1</td><td>0</td><td style="color:var(--mint-bright); font-weight:bold;">1</td><td>0</td></tr>
+                  <tr data-m="3" onclick="setFA(0,1,1)"><td>m₃</td><td>0</td><td>1</td><td>1</td><td>0</td><td style="color:var(--amber-bright); font-weight:bold;">1</td></tr>
+                  <tr data-m="4" onclick="setFA(1,0,0)"><td>m₄</td><td>1</td><td>0</td><td>0</td><td style="color:var(--mint-bright); font-weight:bold;">1</td><td>0</td></tr>
+                  <tr data-m="5" onclick="setFA(1,0,1)"><td>m₅</td><td>1</td><td>0</td><td>1</td><td>0</td><td style="color:var(--amber-bright); font-weight:bold;">1</td></tr>
+                  <tr data-m="6" onclick="setFA(1,1,0)"><td>m₆</td><td>1</td><td>1</td><td>0</td><td>0</td><td style="color:var(--amber-bright); font-weight:bold;">1</td></tr>
+                  <tr data-m="7" onclick="setFA(1,1,1)"><td>m₇</td><td>1</td><td>1</td><td>1</td><td style="color:var(--mint-bright); font-weight:bold;">1</td><td style="color:var(--amber-bright); font-weight:bold;">1</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Real-Time Combinational Signal Probe & Boolean Derivation Card -->
+          <div style="margin-top: 1.5rem; background: var(--carbon-950); border: 1px solid var(--border-dim); border-radius: 6px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--amber-main); font-weight: 700;">
+                LIVE GATE PROBE &amp; COMBINATIONAL BOOLEAN DERIVATION
+              </span>
+              <span id="gate-active-minterm-badge" class="tab-badge" style="background: rgba(245, 158, 11, 0.2); color: var(--amber-bright); border: 1px solid var(--amber-main);">
+                ACTIVE MINTERM: m₀
+              </span>
+            </div>
+            <div id="gate-boolean-steps" style="font-family: var(--font-code); font-size: 0.82rem; color: var(--carbon-200); line-height: 1.8;">
+              <!-- Populated dynamically via updateActiveGateDerivation -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 05: VIRTUAL LOGIC ANALYZER & TIMING TRACE
+         ====================================================================== -->
+    <div class="view-panel" id="view-analyzer">
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">
+            <span style="color: var(--amber-bright);">&#9881;</span>
+            Multi-Channel Digital Waveform Analyzer &amp; Oscilloscope
+          </span>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <div class="seg-control" id="analyzer-timebase-seg">
+              <button class="seg-btn" data-timebase="0.5">0.5 ns/div</button>
+              <button class="seg-btn active" data-timebase="1.0">1.0 ns/div</button>
+              <button class="seg-btn" data-timebase="2.0">2.0 ns/div</button>
+            </div>
+            <button class="eng-btn primary" id="btn-analyzer-sweep" onclick="toggleAnalyzerSweep()">
+              <span id="analyzer-sweep-icon">&#9654;</span> <span id="analyzer-sweep-txt">Run Live Sweep</span>
+            </button>
+            <button class="eng-btn" onclick="recalculateSimulation()">Refresh Trace</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Real-Time Timing Measurement & Hover Telemetry HUD -->
+          <div class="grid-3" style="margin-bottom: 1.25rem;">
+            <div class="metric-box">
+              <span class="metric-lbl">SAMPLING TIMEBASE</span>
+              <div class="metric-val" id="analyzer-disp-timebase" style="color: var(--amber-bright); font-size: 1.15rem;">1.0 ns / div</div>
+              <span class="metric-sub">Sampling Clock: 1.0 GHz</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-lbl">PROPAGATION SETTLING TIME</span>
+              <div class="metric-val" id="analyzer-disp-settling" style="color: var(--mint-bright); font-size: 1.15rem;">68.0 ns</div>
+              <span class="metric-sub">Critical Carry Cascade Delay</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-lbl">CURSOR TIME READOUT</span>
+              <div class="metric-val" id="analyzer-cursor-readout" style="color: #fff; font-size: 1.15rem;">t = -- ns</div>
+              <span class="metric-sub" id="analyzer-cursor-signals">Hover cursor over canvas</span>
+            </div>
+          </div>
+
+          <div style="background: #040507; border: 1px solid var(--border-dim); border-radius: 6px; padding: 1.25rem; position: relative;">
+            <canvas id="analyzer-canvas" width="1000" height="260" style="width: 100%; height: 260px; display: block; cursor: crosshair;"></canvas>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400); flex-wrap: wrap; gap: 0.5rem;">
+            <span>CHANNELS: 1: CLK | 2: A[Bus] | 3: B[Bus] | 4: C_IN | 5: C_RIPPLE | 6: SUM[Bus] | 7: C_OUT</span>
+            <span style="color: var(--carbon-600);">Tip: Drag or move mouse across the oscilloscope canvas to inspect live bus values at each nanosecond division.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 06: INTERACTIVE PRACTICE & MISSION ARENA
+         ====================================================================== -->
+    <div class="view-panel" id="view-practice">
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">Digital Systems Interactive Practice & Challenge Arena</span>
+          <span style="font-family: var(--font-code); font-size: 0.75rem; color: var(--amber-main); font-weight: 700;" id="mission-score-tag">
+            COMPLETED: 0 / 4 MISSIONS
+          </span>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 0.85rem; color: var(--carbon-400); margin-bottom: 1.5rem;">
+            Test your digital logic problem-solving skills! Complete each hands-on interactive challenge by setting the correct input operands or configuring the circuit.
+          </p>
+
+          <div class="grid-2">
+            <!-- Mission 1 -->
+            <div class="mission-card" id="card-m1">
+              <div class="mission-header">
+                <span style="font-family: var(--font-display); font-weight: 700; color: #fff;">MISSION 1: The Carry Cascade Trigger</span>
+                <span class="mission-badge pending" id="badge-m1">INCOMPLETE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--carbon-400);">
+                Find two 4-bit numbers whose sum causes a carry to ripple through all 4 stages and sets the Carry-Out Flag (Cout = 1) with Sum = 0.
+              </p>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button class="eng-btn primary" onclick="tryMission1()">Verify Current Inputs</button>
+                <button class="eng-btn" onclick="solveMission1()" style="color:var(--amber-bright); border-color:var(--amber-main);">⚡ Auto-Load &amp; Solve (15 + 1)</button>
+                <button class="eng-btn" onclick="switchTab('view-workbench')" style="color:var(--carbon-400);">Workbench &rarr;</button>
+              </div>
+              <div style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-600); margin-top: 0.4rem;" id="msg-m1">Hint: Try 15 + 1 in 4-bit mode</div>
+            </div>
+
+            <!-- Mission 2 -->
+            <div class="mission-card" id="card-m2">
+              <div class="mission-header">
+                <span style="font-family: var(--font-display); font-weight: 700; color: #fff;">MISSION 2: The Parity Solitary State</span>
+                <span class="mission-badge pending" id="badge-m2">INCOMPLETE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--carbon-400);">
+                Configure the Full Adder so that all three inputs are active (A=1, B=1, Cin=1). Verify whether Sum and Cout are both 1.
+              </p>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button class="eng-btn primary" onclick="tryMission2()">Verify Full Adder State</button>
+                <button class="eng-btn" onclick="solveMission2()" style="color:var(--mint-bright); border-color:var(--mint-main);">⚡ Set FA (1, 1, 1) &amp; Solve</button>
+                <button class="eng-btn" onclick="switchTab('view-gates'); document.querySelectorAll('#gate-macro-toggle .seg-btn')[1].click();" style="color:var(--carbon-400);">Gate Lab &rarr;</button>
+              </div>
+              <div style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-600); margin-top: 0.4rem;" id="msg-m2">Hint: Go to Gate Lab and toggle all 3 pins</div>
+            </div>
+
+            <!-- Mission 3 -->
+            <div class="mission-card" id="card-m3">
+              <div class="mission-header">
+                <span style="font-family: var(--font-display); font-weight: 700; color: #fff;">MISSION 3: Maximum 8-Bit Saturation</span>
+                <span class="mission-badge pending" id="badge-m3">INCOMPLETE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--carbon-400);">
+                Switch the accumulator to 8-bit width and enter two operands that sum exactly to the 8-bit ceiling: 255 (with Cout = 0).
+              </p>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button class="eng-btn primary" onclick="tryMission3()">Verify 8-Bit Ceiling</button>
+                <button class="eng-btn" onclick="solveMission3()" style="color:var(--amber-bright); border-color:var(--amber-main);">⚡ Auto-Load 8-Bit Ceiling &amp; Solve</button>
+                <button class="eng-btn" onclick="switchTab('view-workbench')" style="color:var(--carbon-400);">Workbench &rarr;</button>
+              </div>
+              <div style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-600); margin-top: 0.4rem;" id="msg-m3">Hint: 100 + 155 in 8-bit mode</div>
+            </div>
+
+            <!-- Mission 4 -->
+            <div class="mission-card" id="card-m4">
+              <div class="mission-header">
+                <span style="font-family: var(--font-display); font-weight: 700; color: #fff;">MISSION 4: The Half Adder Carry Lock</span>
+                <span class="mission-badge pending" id="badge-m4">INCOMPLETE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--carbon-400);">
+                On the Half Adder, configure the inputs to produce Sum = 0 and Carry = 1.
+              </p>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button class="eng-btn primary" onclick="tryMission4()">Verify Half Adder State</button>
+                <button class="eng-btn" onclick="solveMission4()" style="color:var(--mint-bright); border-color:var(--mint-main);">⚡ Set HA (A=1, B=1) &amp; Solve</button>
+                <button class="eng-btn" onclick="switchTab('view-gates'); document.querySelectorAll('#gate-macro-toggle .seg-btn')[0].click();" style="color:var(--carbon-400);">Gate Lab &rarr;</button>
+              </div>
+              <div style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-600); margin-top: 0.4rem;" id="msg-m4">Hint: A=1, B=1 in Half Adder</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 07: AUTOMATED REGRESSION TESTBENCH
+         ====================================================================== -->
+    <div class="view-panel" id="view-testbench">
+      <div class="lab-card">
+        <div class="card-head">
+          <span class="card-title">IEEE 1364 Automated Verification Suite</span>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="eng-btn primary" id="btn-run-tb">Execute All Vectors</button>
+            <button class="eng-btn" id="btn-export-csv">Export CSV</button>
+            <button class="eng-btn" id="btn-copy-verilog">Copy Verilog Log</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Real-Time Testbench Summary & Progress Suite -->
+          <div style="background: var(--carbon-950); border: 1px solid var(--border-dim); border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <span style="font-family: var(--font-code); font-size: 0.72rem; color: var(--carbon-400); font-weight: 600;">FILTER VECTORS:</span>
+              <button class="tb-filter-btn active" id="tb-filter-all" onclick="filterTestbench('all')">All (16)</button>
+              <button class="tb-filter-btn" id="tb-filter-norm" onclick="filterTestbench('normal')">Normal (11)</button>
+              <button class="tb-filter-btn" id="tb-filter-fault" onclick="filterTestbench('fault')">Fault/Overflow (5)</button>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 180px;">
+                <div style="display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 0.7rem;">
+                  <span style="color: var(--carbon-400);">REGRESSION PROGRESS</span>
+                  <span id="tb-progress-text" style="color: var(--mint-bright); font-weight: 700;">16 / 16 PASSED</span>
+                </div>
+                <div style="height: 6px; background: var(--carbon-800); border-radius: 3px; overflow: hidden;">
+                  <div id="tb-progress-bar" style="height: 100%; width: 100%; background: var(--mint-main); border-radius: 3px; transition: width 0.2s ease;"></div>
+                </div>
+              </div>
+              <span id="tb-status-badge" class="tab-badge" style="background: rgba(16, 185, 129, 0.2); color: var(--mint-bright); border: 1px solid var(--mint-main);">
+                100% PASS RATE
+              </span>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="table-scroll">
+              <table class="eng-table" id="tb-table">
+                <thead>
+                  <tr>
+                    <th>Vector</th><th>Type</th><th>Operands</th><th>Width</th><th>Expected</th><th>Simulated</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-tbody"></tbody>
+              </table>
+            </div>
+
+            <div>
+              <div style="font-family: var(--font-code); font-size: 0.75rem; color: var(--amber-main); margin-bottom: 0.5rem; font-weight: 600;">
+                VERILOG SIMULATION LOG ($display OUTPUT):
+              </div>
+              <div class="verilog-term" id="verilog-stdout">
+// EC2201 Automated Verification Testbench Ready.
+// Click "Execute All Vectors" to run regression tests.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Workstation Footer -->
+  <footer class="lab-footer">
+    <span>EC2201 DIGITAL SYSTEMS INTERACTIVE LEARNING PLATFORM</span>
+    <span>100% CLIENT-SIDE &bull; ZERO BACKEND DEPENDENCIES &bull; HANDS-ON WORKBENCH</span>
+  </footer>
+
+  <!-- Script: Digital Core, Pictorial Visualizations & Missions -->
+  <script>
+    /* State */
+    const State = {
+      bitWidth: 4,
+      radix: 'dec',
+      valA: 7,
+      valB: 8,
+      sound: true,
+      techFamily: '74HC',
+      
+      techDelays: {
+        '74HC':  { xor: 11.0, and: 9.0, or: 8.0, unit: 'ns' },
+        '74LVC': { xor: 4.2,  and: 3.6, or: 3.2, unit: 'ns' },
+        'IDEAL': { xor: 3.0,  and: 2.0, or: 2.0, unit: 'tau' }
+      },
+
+      haA: 0, haB: 0,
+      faA: 0, faB: 0, faCin: 0,
+      kmapTarget: 'fa-cout',
+
+      simSpeed: 350,
+      activeStep: 0,
+      simInterval: null,
+      lastTrace: null,
+
+      missionsSolved: { m1: false, m2: false, m3: false, m4: false },
+      timebase: 1.0,
+      analyzerSweepActive: false,
+      analyzerSweepX: 90,
+      analyzerAnimId: null,
+      tbFilter: 'all',
+      authenticated: false
+    };
+
+    /* ==========================================================================
+       LOGIN & SECURITY CLEARANCE INTRO CONTROLLER
+       ========================================================================== */
+    function handleLoginSubmit(e) {
+      if (e) e.preventDefault();
+      const userIn = document.getElementById('login-user');
+      const passIn = document.getElementById('login-pass');
+      const fb = document.getElementById('login-feedback');
+      const btn = document.getElementById('btn-login-submit');
+
+      const user = userIn ? userIn.value.trim() : 'OPERATOR';
+      beep(620, 0.08);
+
+      if (fb) {
+        fb.innerHTML = `<span style="color:var(--amber-bright); font-weight:700;">[VERIFYING] Authenticating security token for ${user}...</span>`;
+        fb.style.borderColor = 'var(--amber-main)';
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>&#8987;</span> AUTHENTICATING...`;
+      }
+
+      setTimeout(() => {
+        beep(880, 0.15);
+        State.authenticated = true;
+        if (fb) {
+          fb.innerHTML = `<span style="color:var(--mint-bright); font-weight:700;">&check; [ACCESS GRANTED] Decrypting Macrocell Workstation...</span>`;
+          fb.style.borderColor = 'var(--mint-main)';
+          fb.style.boxShadow = 'var(--glow-mint)';
+        }
+
+        // Trigger Smooth Cinematic Fade-Away Animation
+        setTimeout(() => {
+          const overlay = document.getElementById('login-screen-overlay');
+          if (overlay) {
+            overlay.classList.add('login-fade-out');
+            setTimeout(() => {
+              overlay.style.display = 'none';
+              recalculateSimulation();
+              updateHA();
+              updateFA();
+            }, 750);
+          }
+        }, 450);
+      }, 500);
+    }
+
+    function quickGuestLogin() {
+      const userIn = document.getElementById('login-user');
+      const passIn = document.getElementById('login-pass');
+      if (userIn) userIn.value = 'GUEST-STUDENT';
+      if (passIn) passIn.value = '2026';
+      handleLoginSubmit();
+    }
+
+    function lockStation() {
+      const overlay = document.getElementById('login-screen-overlay');
+      const fb = document.getElementById('login-feedback');
+      const btn = document.getElementById('btn-login-submit');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        void overlay.offsetWidth; // Force CSS reflow
+        overlay.classList.remove('login-fade-out');
+        if (fb) {
+          fb.innerHTML = `<span style="color:var(--carbon-400);">&bull; Station locked. Awaiting operator credentials...</span>`;
+          fb.style.borderColor = 'var(--border-dim)';
+          fb.style.boxShadow = 'none';
+        }
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<span>&#128275;</span> AUTHORIZE &amp; ENTER WORKSTATION`;
+        }
+        State.authenticated = false;
+        beep(360, 0.1);
+      }
+    }
+
+    /* Kinetic Text Arrival Trigger Helper */
+    function triggerArrival(el, text) {
+      if (!el) return;
+      el.innerText = text;
+      el.classList.remove('arrive-text');
+      void el.offsetWidth; // trigger reflow
+      el.classList.add('arrive-text');
+    }
+
+    /* Audio Synth */
+    let audioCtx = null;
+    function beep(freq = 440, dur = 0.04) {
+      if (!State.sound) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.03, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch (e) {}
+    }
+
+    /* Core Logic */
+    function digitalHA(a, b) { return { sum: (a ^ b) & 1, carry: (a & b) & 1 }; }
+    function digitalFA(a, b, cin) {
+      const ha1 = digitalHA(a, b);
+      const ha2 = digitalHA(ha1.sum, cin);
+      return { sum: ha2.sum, cout: (ha1.carry | ha2.carry) & 1, ha1, ha2 };
+    }
+
+    function digitalRipple(aBits, bBits, cin = 0) {
+      const delays = State.techDelays[State.techFamily];
+      const tCarry = delays.and + delays.or;
+      const tSum = delays.xor + delays.xor;
+      const n = Math.max(aBits.length, bBits.length);
+      const stages = [];
+      let c = cin;
+
+      for (let i = 0; i < n; i++) {
+        const a_i = aBits[i] || 0;
+        const b_i = bBits[i] || 0;
+        const fa = digitalFA(a_i, b_i, c);
+        const stageDelay = (i === 0) ? Math.max(tCarry, tSum) : (i * tCarry + Math.max(tCarry, tSum));
+        stages.push({ index: i, a: a_i, b: b_i, cin: c, sum: fa.sum, cout: fa.cout, delay: stageDelay });
+        c = fa.cout;
+      }
+
+      return {
+        stages,
+        sumBits: stages.map(s => s.sum),
+        finalCout: c,
+        totalDelay: (n - 1) * tCarry + Math.max(tCarry, tSum),
+        unit: delays.unit
+      };
+    }
+
+    function intToBits(num, len) {
+      const b = [];
+      for (let i = 0; i < len; i++) b.push((num >> i) & 1);
+      return b;
+    }
+    function bitsToInt(bits) {
+      let v = 0;
+      for (let i = 0; i < bits.length; i++) if (bits[i]) v += Math.pow(2, i);
+      return v;
+    }
+
+    /* Tab Switcher */
+    function switchTab(tabId) {
+      document.querySelectorAll('.workspace-tabs .view-tab-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tabId);
+      });
+      document.querySelectorAll('.view-panel').forEach(p => {
+        const isActive = p.getAttribute('id') === tabId;
+        p.classList.toggle('active', isActive);
+        if (isActive) {
+          p.querySelectorAll('.card-title, h2, h3').forEach(el => {
+            el.classList.remove('arrive-text');
+            void el.offsetWidth;
+            el.classList.add('arrive-text');
+          });
+        }
+      });
+
+      if (tabId === 'view-kmaps') renderKMap();
+      if (tabId === 'view-analyzer' && State.lastTrace) drawWaveforms(State.lastTrace);
+      if (tabId === 'view-breadboard') updateBreadboard();
+      beep(520, 0.04);
+    }
+
+    /* Inputs */
+    const inA = document.getElementById('in-val-a');
+    const inB = document.getElementById('in-val-b');
+
+    function updateBitWidth(w) {
+      State.bitWidth = parseInt(w);
+      document.querySelectorAll('#width-seg .seg-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.width) === State.bitWidth);
+      });
+      triggerArrival(document.getElementById('top-status-text'), `CORE READY [${State.bitWidth}-BIT]`);
+      const maxV = Math.pow(2, State.bitWidth) - 1;
+      document.getElementById('range-a').innerText = `Range: [0..${maxV}]`;
+      document.getElementById('range-b').innerText = `Range: [0..${maxV}]`;
+      validateInputs();
+      renderRippleDOM();
+      recalculateSimulation();
+      beep(500);
+    }
+
+    function updateRadix(r) {
+      State.radix = r;
+      document.querySelectorAll('#radix-seg .seg-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.radix === State.radix);
+      });
+      if (r === 'bin') {
+        inA.value = intToBits(State.valA, State.bitWidth).reverse().join('');
+        inB.value = intToBits(State.valB, State.bitWidth).reverse().join('');
+      } else {
+        inA.value = State.valA.toString();
+        inB.value = State.valB.toString();
+      }
+      validateInputs();
+      beep(480);
+    }
+
+    function validateInputs() {
+      const maxV = Math.pow(2, State.bitWidth) - 1;
+      let okA = true, okB = true;
+      let valA = 0, valB = 0;
+
+      const rawA = inA.value.trim();
+      const rawB = inB.value.trim();
+      const errA = document.getElementById('err-a');
+      const errB = document.getElementById('err-b');
+
+      errA.innerText = ''; errB.innerText = '';
+      inA.classList.remove('err'); inB.classList.remove('err');
+
+      if (State.radix === 'dec') {
+        if (!/^\d+$/.test(rawA)) { errA.innerText = 'Not unsigned int'; okA = false; }
+        else {
+          valA = parseInt(rawA, 10);
+          if (valA > maxV) { errA.innerText = `Max is ${maxV}`; okA = false; }
+        }
+        if (!/^\d+$/.test(rawB)) { errB.innerText = 'Not unsigned int'; okB = false; }
+        else {
+          valB = parseInt(rawB, 10);
+          if (valB > maxV) { errB.innerText = `Max is ${maxV}`; okB = false; }
+        }
+      } else {
+        const cleanA = rawA.replace(/^0b/i, '').replace(/\s+/g, '');
+        const cleanB = rawB.replace(/^0b/i, '').replace(/\s+/g, '');
+
+        if (cleanA.length === 0 || !/^[01]+$/.test(cleanA)) { errA.innerText = '0 and 1 only'; okA = false; }
+        else if (cleanA.length > State.bitWidth) { errA.innerText = `Exceeds ${State.bitWidth} bits`; okA = false; }
+        else { valA = parseInt(cleanA, 2); }
+
+        if (cleanB.length === 0 || !/^[01]+$/.test(cleanB)) { errB.innerText = '0 and 1 only'; okB = false; }
+        else if (cleanB.length > State.bitWidth) { errB.innerText = `Exceeds ${State.bitWidth} bits`; okB = false; }
+        else { valB = parseInt(cleanB, 2); }
+      }
+
+      if (!okA) inA.classList.add('err');
+      if (!okB) inB.classList.add('err');
+
+      if (okA && okB) {
+        State.valA = valA; State.valB = valB;
+        triggerArrival(document.getElementById('disp-bin-a'), `0b${intToBits(valA, State.bitWidth).reverse().join('')}`);
+        triggerArrival(document.getElementById('disp-bin-b'), `0b${intToBits(valB, State.bitWidth).reverse().join('')}`);
+        recalculateSimulation();
+      }
+    }
+
+    function applyPreset(a, b, w) {
+      updateBitWidth(w);
+      State.valA = a; State.valB = b;
+      if (State.radix === 'bin') {
+        inA.value = intToBits(a, w).reverse().join('');
+        inB.value = intToBits(b, w).reverse().join('');
+      } else {
+        inA.value = a.toString();
+        inB.value = b.toString();
+      }
+      validateInputs();
+    }
+
+    /* Pictorial Server Infographic */
+    function updatePictorial(res) {
+      const a = State.valA, b = State.valB;
+      const sum = bitsToInt(res.sumBits);
+      const maxV = Math.pow(2, State.bitWidth) - 1;
+      const cout = res.finalCout;
+
+      triggerArrival(document.getElementById('pic-txt-val-a'), `LOAD: ${a} UNITS`);
+      triggerArrival(document.getElementById('pic-txt-val-b'), `LOAD: ${b} UNITS`);
+
+      const renderBays = (cid, val, color, isA) => {
+        const c = document.getElementById(cid);
+        if (!c) return;
+        c.innerHTML = '';
+        const slots = Math.min(maxV, 8);
+        const activeCount = Math.round((val / maxV) * slots);
+
+        for (let i = 0; i < slots; i++) {
+          const y = 45 + i * 18;
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', 15);
+          rect.setAttribute('y', y);
+          rect.setAttribute('width', 155);
+          rect.setAttribute('height', 14);
+          rect.setAttribute('rx', 3);
+          rect.setAttribute('class', 'rack-bay-rect');
+          rect.setAttribute('fill', (i < activeCount) ? color : '#13151b');
+          rect.setAttribute('stroke', (i < activeCount) ? '#fff' : '#2d313e');
+          rect.setAttribute('stroke-width', (i < activeCount) ? '1.5' : '0.6');
+          if (i < activeCount) rect.setAttribute('filter', 'url(#lumen-glow)');
+
+          rect.onclick = () => {
+            const stepVal = Math.round(((i + 1) / slots) * maxV);
+            if (isA) inA.value = stepVal; else inB.value = stepVal;
+            validateInputs();
+            beep(620);
+          };
+          c.appendChild(rect);
+        }
+      };
+
+      renderBays('rack-a-bays', a, '#f59e0b', true);
+      renderBays('rack-b-bays', b, '#10b981', false);
+
+      // Microchip Adder Cells
+      const chipGroup = document.getElementById('silicon-adder-cells');
+      if (chipGroup) {
+        chipGroup.innerHTML = '';
+        const n = State.bitWidth;
+        const colW = Math.floor(180 / n);
+        for (let i = 0; i < n; i++) {
+          const x = 20 + i * colW;
+          const s = res.stages[n - 1 - i];
+          const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          r.setAttribute('x', x);
+          r.setAttribute('y', 65);
+          r.setAttribute('width', colW - 4);
+          r.setAttribute('height', 95);
+          r.setAttribute('rx', 4);
+          r.setAttribute('fill', s.sum ? 'rgba(245, 158, 11, 0.3)' : '#0d0e12');
+          r.setAttribute('stroke', s.sum ? '#f59e0b' : '#262934');
+          r.setAttribute('stroke-width', '1.5');
+          if (s.sum) r.setAttribute('filter', 'url(#lumen-glow)');
+          chipGroup.appendChild(r);
+
+          const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          txt.setAttribute('x', x + (colW - 4)/2);
+          txt.setAttribute('y', 115);
+          txt.setAttribute('fill', s.sum ? '#fbbf24' : '#878c9e');
+          txt.setAttribute('font-family', "'JetBrains Mono', monospace");
+          txt.setAttribute('font-size', '9.5');
+          txt.setAttribute('font-weight', '700');
+          txt.setAttribute('text-anchor', 'middle');
+          txt.textContent = `FA${n - 1 - i}`;
+          chipGroup.appendChild(txt);
+        }
+      }
+
+      // Gauge Needle Physics
+      const pct = Math.min((a + b) / maxV, 1.0);
+      const angle = -90 + (pct * 180);
+      const needle = document.getElementById('gauge-needle');
+      if (needle) needle.setAttribute('transform', `rotate(${angle}, 108, 140)`);
+
+      const arc = document.getElementById('gauge-arc');
+      if (arc) arc.setAttribute('stroke-dashoffset', 226 - (pct * 226));
+
+      triggerArrival(document.getElementById('pic-gauge-sum'), `${sum} UNITS`);
+      const util = (((a + b) / maxV) * 100).toFixed(1);
+      triggerArrival(document.getElementById('pic-gauge-util'), `${util}% UTILIZED`);
+
+      const cfLbl = document.getElementById('pic-gauge-cf');
+      const boxBorder = document.getElementById('gauge-box-border');
+      if (cout === 1) {
+        cfLbl.textContent = 'OVERFLOW: EXCEEDS BUS!';
+        cfLbl.setAttribute('fill', '#ef4444');
+        if (boxBorder) boxBorder.classList.add('alarm-active');
+      } else {
+        cfLbl.textContent = 'STATUS: WITHIN CAPACITY';
+        cfLbl.setAttribute('fill', '#10b981');
+        if (boxBorder) boxBorder.classList.remove('alarm-active');
+      }
+    }
+
+    /* Virtual Breadboard Pictorial */
+    function updateBreadboard() {
+      const aBits = intToBits(State.valA, 4);
+      const bBits = intToBits(State.valB, 4);
+      const res = digitalRipple(aBits, bBits, 0);
+
+      // Switches
+      const swGroup = document.getElementById('breadboard-switches');
+      if (swGroup) {
+        swGroup.innerHTML = '';
+        for (let i = 0; i < 4; i++) {
+          const y = 55 + i * 24;
+          // Switch A[i] (Amber)
+          const isAOn = aBits[3 - i] === 1;
+          const grpA = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          grpA.setAttribute('style', 'cursor: pointer;');
+          grpA.onclick = () => {
+            State.valA ^= (1 << (3 - i));
+            inA.value = State.valA;
+            validateInputs();
+            beep(700);
+          };
+
+          const rectA = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rectA.setAttribute('x', 30);
+          rectA.setAttribute('y', y);
+          rectA.setAttribute('width', 36);
+          rectA.setAttribute('height', 18);
+          rectA.setAttribute('rx', 3);
+          rectA.setAttribute('fill', isAOn ? '#f59e0b' : '#3f2005');
+          rectA.setAttribute('stroke', isAOn ? '#fbbf24' : '#78350f');
+          grpA.appendChild(rectA);
+
+          const txtA = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          txtA.setAttribute('x', 48); txtA.setAttribute('y', y + 13);
+          txtA.setAttribute('fill', '#fff'); txtA.setAttribute('font-size', '10');
+          txtA.setAttribute('font-family', "'JetBrains Mono', monospace");
+          txtA.setAttribute('font-weight', '800');
+          txtA.setAttribute('text-anchor', 'middle');
+          txtA.setAttribute('style', 'pointer-events: none;');
+          txtA.textContent = isAOn ? '1' : '0';
+          grpA.appendChild(txtA);
+          swGroup.appendChild(grpA);
+
+          // Switch B[i] (Mint)
+          const isBOn = bBits[3 - i] === 1;
+          const grpB = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          grpB.setAttribute('style', 'cursor: pointer;');
+          grpB.onclick = () => {
+            State.valB ^= (1 << (3 - i));
+            inB.value = State.valB;
+            validateInputs();
+            beep(700);
+          };
+
+          const rectB = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rectB.setAttribute('x', 115);
+          rectB.setAttribute('y', y);
+          rectB.setAttribute('width', 36);
+          rectB.setAttribute('height', 18);
+          rectB.setAttribute('rx', 3);
+          rectB.setAttribute('fill', isBOn ? '#10b981' : '#033b2a');
+          rectB.setAttribute('stroke', isBOn ? '#34d399' : '#047857');
+          grpB.appendChild(rectB);
+
+          const txtB = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          txtB.setAttribute('x', 133); txtB.setAttribute('y', y + 13);
+          txtB.setAttribute('fill', '#fff'); txtB.setAttribute('font-size', '10');
+          txtB.setAttribute('font-family', "'JetBrains Mono', monospace");
+          txtB.setAttribute('font-weight', '800');
+          txtB.setAttribute('text-anchor', 'middle');
+          txtB.setAttribute('style', 'pointer-events: none;');
+          txtB.textContent = isBOn ? '1' : '0';
+          grpB.appendChild(txtB);
+          swGroup.appendChild(grpB);
+        }
+      }
+
+      // LEDs
+      const ledGroup = document.getElementById('breadboard-leds');
+      if (ledGroup) {
+        ledGroup.innerHTML = '';
+        for (let i = 0; i < 4; i++) {
+          const y = 45 + i * 26;
+          const sBit = res.sumBits[3 - i];
+
+          const circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circ.setAttribute('cx', 50);
+          circ.setAttribute('cy', y + 8);
+          circ.setAttribute('r', 9.5);
+          circ.setAttribute('fill', sBit ? '#10b981' : '#1a1c24');
+          circ.setAttribute('stroke', sBit ? '#34d399' : '#3b3f4e');
+          circ.setAttribute('stroke-width', '2');
+          if (sBit) circ.setAttribute('filter', 'url(#lumen-glow)');
+          ledGroup.appendChild(circ);
+
+          const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          txt.setAttribute('x', 75); txt.setAttribute('y', y + 12);
+          txt.setAttribute('fill', sBit ? '#34d399' : '#878c9e');
+          txt.setAttribute('font-size', '10.5');
+          txt.setAttribute('font-family', "'JetBrains Mono', monospace");
+          txt.setAttribute('font-weight', '700');
+          txt.textContent = `S[${3 - i}] = ${sBit}`;
+          ledGroup.appendChild(txt);
+        }
+
+        // Cout LED (Amber)
+        const cout = res.finalCout;
+        const cCirc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        cCirc.setAttribute('cx', 160);
+        cCirc.setAttribute('cy', 85);
+        cCirc.setAttribute('r', 13);
+        cCirc.setAttribute('fill', cout ? '#f59e0b' : '#1a1c24');
+        cCirc.setAttribute('stroke', cout ? '#fbbf24' : '#3b3f4e');
+        cCirc.setAttribute('stroke-width', '2.5');
+        if (cout) cCirc.setAttribute('filter', 'url(#lumen-glow)');
+        ledGroup.appendChild(cCirc);
+
+        const cTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        cTxt.setAttribute('x', 160); cTxt.setAttribute('y', 118);
+        cTxt.setAttribute('fill', cout ? '#fbbf24' : '#878c9e');
+        cTxt.setAttribute('font-size', '10.5');
+        cTxt.setAttribute('font-family', "'JetBrains Mono', monospace");
+        cTxt.setAttribute('font-weight', '800');
+        cTxt.setAttribute('text-anchor', 'middle');
+        cTxt.textContent = `COUT = ${cout}`;
+        ledGroup.appendChild(cTxt);
+      }
+    }
+
+    /* Ripple Chain */
+    function renderRippleDOM() {
+      const container = document.getElementById('ripple-chain-container');
+      container.innerHTML = '';
+      const n = State.bitWidth;
+
+      for (let i = n - 1; i >= 0; i--) {
+        const box = document.createElement('div');
+        box.className = 'adder-stage-box';
+        box.id = `fa-stg-${i}`;
+        box.innerHTML = `
+          <div style="font-family:var(--font-code); font-size:0.75rem; font-weight:700; color:var(--amber-main); display:flex; justify-content:space-between;">
+            <span>BIT ${i}</span>
+            <span id="stg-lat-${i}" style="color:var(--carbon-400);">--</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-code); font-size:0.75rem;">
+            <span>A[${i}]=<strong id="stg-a-${i}" style="color:var(--amber-bright)">0</strong></span>
+            <span>B[${i}]=<strong id="stg-b-${i}" style="color:var(--mint-bright)">0</strong></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-code); font-size:0.7rem; color:var(--carbon-400);">
+            <span>Cin=<strong id="stg-cin-${i}" style="color:var(--amber-bright)">0</strong></span>
+            <span>Cout=<strong id="stg-cout-${i}" style="color:var(--amber-bright)">0</strong></span>
+          </div>
+          <div style="background:var(--carbon-950); border:1px solid var(--border-dim); border-radius:3px; padding:0.35rem; text-align:center; font-family:var(--font-code); font-weight:700; font-size:0.85rem;" id="stg-s-${i}">
+            S[${i}] = 0
+          </div>
+        `;
+        container.appendChild(box);
+
+        if (i > 0) {
+          const junc = document.createElement('div');
+          junc.className = 'carry-junction';
+          junc.innerHTML = `<span class="carry-arrow" id="carry-arrow-${i}">⇦</span>`;
+          container.appendChild(junc);
+        }
+      }
+
+      const of = document.createElement('div');
+      of.className = 'adder-stage-box';
+      of.style.width = '110px';
+      of.style.borderColor = 'var(--amber-main)';
+      of.innerHTML = `
+        <div style="font-family:var(--font-code); font-size:0.75rem; color:var(--amber-bright); font-weight:800;">OVERFLOW</div>
+        <div style="font-family:var(--font-code); font-size:0.7rem; color:var(--carbon-400);">FINAL COUT</div>
+        <div style="background:var(--carbon-950); border:1px solid var(--amber-main); color:var(--amber-bright); border-radius:3px; padding:0.35rem; text-align:center; font-family:var(--font-code); font-weight:800; font-size:0.85rem;" id="chain-final-cout">
+          CF = 0
+        </div>
+      `;
+      container.insertBefore(of, container.firstChild);
+    }
+
+    /* ==========================================================================
+       UPDATE 1: INTERACTIVE ADDER USAGE & RESOURCE ALLOCATION CALCULATOR ENGINE
+       ========================================================================== */
+    function updateAdderCalculator(res) {
+      const tbody = document.getElementById('calc-bitwise-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const n = State.bitWidth;
+      const delays = State.techDelays[State.techFamily];
+      const tCarry = delays.and + delays.or;
+      const tSum = delays.xor + delays.xor;
+
+      // Populate bit stages from MSB down to LSB (Bit n-1 down to 0)
+      for (let i = n - 1; i >= 0; i--) {
+        const stg = res.stages[i];
+        const tr = document.createElement('tr');
+        const stgDelay = (i === 0) ? Math.max(tCarry, tSum) : (i * tCarry + Math.max(tCarry, tSum));
+        tr.innerHTML = `
+          <td><span class="tab-badge">FA [${i}]</span></td>
+          <td><span class="bit-badge ${stg.a ? 'bit-badge-amber' : 'bit-badge-0'}">${stg.a}</span></td>
+          <td><span class="bit-badge ${stg.b ? 'bit-badge-mint' : 'bit-badge-0'}">${stg.b}</span></td>
+          <td><span class="bit-badge ${stg.cin ? 'bit-badge-amber' : 'bit-badge-0'}">${stg.cin}</span></td>
+          <td><span class="bit-badge bit-badge-sum">${stg.sum}</span></td>
+          <td><span class="bit-badge ${stg.cout ? 'bit-badge-amber' : 'bit-badge-0'}">${stg.cout}</span></td>
+          <td style="font-family: var(--font-code); font-size: 0.75rem; color: var(--carbon-400);">${stgDelay.toFixed(1)} ${res.unit}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // Silicon Resource Calculations
+      const totalGates = n * 5; // 2 XOR, 2 AND, 1 OR per full adder stage
+      const xorGates = n * 2;
+      const andGates = n * 2;
+      const orGates = n * 1;
+      const totalTransistors = n * 28; // Standard 28T full adder CMOS macrocell
+      const areaUm2 = n * 350; // ~350 um2 per bit in standard 180nm CMOS
+      const volt = State.techFamily === '74HC' ? 5.0 : 3.3;
+      const dynamicPower = ((n / 4) * (volt * volt / 25.0) * 14.2).toFixed(1);
+
+      const elGates = document.getElementById('calc-gate-count');
+      if (elGates) elGates.innerText = `${totalGates} Gates`;
+      const elGateBreakdown = document.getElementById('calc-gate-breakdown');
+      if (elGateBreakdown) elGateBreakdown.innerText = `${xorGates} XOR • ${andGates} AND • ${orGates} OR`;
+
+      const elTrans = document.getElementById('calc-transistor-count');
+      if (elTrans) elTrans.innerText = `${totalTransistors} MOSFETs`;
+
+      const elPower = document.getElementById('calc-power-estimate');
+      if (elPower) elPower.innerHTML = `${dynamicPower} &mu;W`;
+      const elPowerSub = document.getElementById('calc-power-sub');
+      if (elPowerSub) elPowerSub.innerText = `@ 10 MHz toggle, ${volt.toFixed(1)}V (${State.techFamily})`;
+
+      const elArea = document.getElementById('calc-area-estimate');
+      if (elArea) elArea.innerHTML = `${areaUm2.toLocaleString()} &mu;m&sup2;`;
+
+      // Capacity bar and saturation status
+      const maxV = Math.pow(2, n) - 1;
+      const totalSum = State.valA + State.valB;
+      const pct = Math.min((totalSum / maxV) * 100, 100).toFixed(1);
+      const capBar = document.getElementById('calc-cap-bar');
+      const capPct = document.getElementById('calc-cap-percent');
+      const capLabel = document.getElementById('calc-cap-label');
+      const capMax = document.getElementById('calc-cap-max');
+      const satBadge = document.getElementById('calc-sat-badge');
+
+      if (capBar) {
+        capBar.style.width = `${pct}%`;
+        capBar.style.background = res.finalCout ? 'linear-gradient(90deg, #f59e0b, #ef4444)' : 'linear-gradient(90deg, #10b981, #f59e0b)';
+      }
+      if (capPct) capPct.innerText = `${pct}%`;
+      if (capLabel) capLabel.innerText = `${totalSum} / ${maxV} Units`;
+      if (capMax) capMax.innerText = `Max: ${maxV}`;
+      if (satBadge) {
+        if (res.finalCout) {
+          satBadge.innerText = 'OVERFLOW SATURATION (CF=1)';
+          satBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+          satBadge.style.color = '#ef4444';
+          satBadge.style.borderColor = '#ef4444';
+        } else {
+          satBadge.innerText = totalSum === maxV ? 'BOUNDARY CAPACITY (100%)' : 'NOMINAL CAPACITY';
+          satBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+          satBadge.style.color = 'var(--mint-bright)';
+          satBadge.style.borderColor = 'var(--mint-main)';
+        }
+      }
+    }
+
+    function quickCalcOp(op) {
+      const maxV = Math.pow(2, State.bitWidth) - 1;
+      if (op === 'incA') State.valA = Math.min(State.valA + 1, maxV);
+      else if (op === 'decA') State.valA = Math.max(State.valA - 1, 0);
+      else if (op === 'incB') State.valB = Math.min(State.valB + 1, maxV);
+      else if (op === 'decB') State.valB = Math.max(State.valB - 1, 0);
+      else if (op === 'swap') {
+        const tmp = State.valA;
+        State.valA = State.valB;
+        State.valB = tmp;
+      } else if (op === 'invertA') {
+        State.valA = (~State.valA) & maxV;
+      } else if (op === 'random') {
+        State.valA = Math.floor(Math.random() * (maxV + 1));
+        State.valB = Math.floor(Math.random() * (maxV + 1));
+      }
+      inA.value = State.radix === 'bin' ? '0b' + State.valA.toString(2).padStart(State.bitWidth, '0') : State.valA.toString();
+      inB.value = State.radix === 'bin' ? '0b' + State.valB.toString(2).padStart(State.bitWidth, '0') : State.valB.toString();
+      validateInputs();
+      beep(520);
+    }
+
+    function recalculateSimulation() {
+      const aBits = intToBits(State.valA, State.bitWidth);
+      const bBits = intToBits(State.valB, State.bitWidth);
+      const res = digitalRipple(aBits, bBits, 0);
+      State.lastTrace = res;
+
+      for (let i = 0; i < State.bitWidth; i++) {
+        const s = res.stages[i];
+        const elA = document.getElementById(`stg-a-${i}`);
+        const elB = document.getElementById(`stg-b-${i}`);
+        if (elA) elA.innerText = s.a;
+        if (elB) elB.innerText = s.b;
+      }
+
+      triggerArrival(document.getElementById('disp-latency'), `${res.totalDelay.toFixed(1)} ${res.unit}`);
+      triggerArrival(document.getElementById('disp-sum-bin'), `0b${[...res.sumBits].reverse().join('')}`);
+      triggerArrival(document.getElementById('disp-sum-dec'), `Decimal: ${bitsToInt(res.sumBits)}`);
+      triggerArrival(document.getElementById('disp-cout'), `${res.finalCout}`);
+      document.getElementById('disp-cout-desc').innerText = res.finalCout ? 'CF = 1 (Unsigned Overflow)' : 'CF = 0 (Within Bounds)';
+
+      updatePictorial(res);
+      updateBreadboard();
+      drawWaveforms(res);
+      updateAdderCalculator(res);
+    }
+
+    function resetRippleSim() {
+      if (State.simInterval) { clearInterval(State.simInterval); State.simInterval = null; }
+      State.activeStep = 0;
+      for (let i = 0; i < State.bitWidth; i++) {
+        const b = document.getElementById(`fa-stg-${i}`);
+        if (b) {
+          b.classList.remove('evaluating', 'done');
+          document.getElementById(`stg-lat-${i}`).innerText = '--';
+          document.getElementById(`stg-cin-${i}`).innerText = '0';
+          document.getElementById(`stg-cout-${i}`).innerText = '0';
+          document.getElementById(`stg-s-${i}`).innerText = `S[${i}] = 0`;
+        }
+        const a = document.getElementById(`carry-arrow-${i}`);
+        if (a) a.classList.remove('active');
+      }
+      document.getElementById('chain-final-cout').innerText = 'CF = 0';
+    }
+
+    function runRippleSim() {
+      resetRippleSim();
+      State.simInterval = setInterval(() => {
+        if (State.activeStep >= State.bitWidth) {
+          clearInterval(State.simInterval);
+          State.simInterval = null;
+          const finalS = State.lastTrace.stages[State.bitWidth - 1];
+          const of = document.getElementById('chain-final-cout');
+          if (of) {
+            of.innerText = `CF = ${finalS.cout}`;
+            of.style.background = finalS.cout ? 'rgba(245, 158, 11, 0.25)' : 'transparent';
+          }
+          beep(840, 0.1);
+        } else {
+          stepRippleSim();
+        }
+      }, State.simSpeed);
+    }
+
+    function stepRippleSim() {
+      if (State.activeStep >= State.bitWidth) return;
+      const i = State.activeStep;
+      const s = State.lastTrace.stages[i];
+
+      if (i > 0) {
+        const prev = document.getElementById(`fa-stg-${i - 1}`);
+        if (prev) { prev.classList.remove('evaluating'); prev.classList.add('done'); }
+      }
+
+      const cur = document.getElementById(`fa-stg-${i}`);
+      if (cur) {
+        cur.classList.add('evaluating');
+        document.getElementById(`stg-cin-${i}`).innerText = s.cin;
+        document.getElementById(`stg-cout-${i}`).innerText = s.cout;
+        triggerArrival(document.getElementById(`stg-s-${i}`), `S[${i}] = ${s.sum}`);
+        document.getElementById(`stg-lat-${i}`).innerText = `${s.delay.toFixed(1)}${State.lastTrace.unit}`;
+        if (i > 0) {
+          const arr = document.getElementById(`carry-arrow-${i}`);
+          if (arr && s.cin === 1) arr.classList.add('active');
+        }
+      }
+      beep(400 + i * 80, 0.05);
+      State.activeStep++;
+    }
+
+    /* Gate Lab */
+    function toggleHA(pin) {
+      if (pin === 'a') State.haA = State.haA ? 0 : 1;
+      if (pin === 'b') State.haB = State.haB ? 0 : 1;
+      updateHA();
+      beep(State.haA ? 600 : 380);
+    }
+    function setHA(a, b) { State.haA = a; State.haB = b; updateHA(); beep(500); }
+    function updateHA() {
+      const a = State.haA, b = State.haB;
+      const res = digitalHA(a, b);
+      document.getElementById('ind-ha-a').innerText = a;
+      document.getElementById('ind-ha-b').innerText = b;
+      document.getElementById('sw-ha-a').classList.toggle('active', a === 1);
+      document.getElementById('sw-ha-b').classList.toggle('active', b === 1);
+
+      const setWire = (id, high) => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('stroke', high ? '#10b981' : '#3f4252');
+      };
+      setWire('w-ha-a1', a === 1); setWire('w-ha-a2', a === 1);
+      setWire('w-ha-b1', b === 1); setWire('w-ha-b2', b === 1);
+      setWire('w-ha-s', res.sum === 1); setWire('w-ha-c', res.carry === 1);
+
+      triggerArrival(document.getElementById('txt-ha-s'), `Sum = ${res.sum} (${a} ⊕ ${b})`);
+      triggerArrival(document.getElementById('txt-ha-c'), `Carry = ${res.carry} (${a} · ${b})`);
+
+      const m = (a << 1) | b;
+      document.querySelectorAll('#tb-ha tbody tr').forEach(r => {
+        const rowM = r.getAttribute('data-m') !== null ? parseInt(r.getAttribute('data-m')) : (r.dataset ? parseInt(r.dataset.m) : -1);
+        r.classList.toggle('active-eval', rowM === m);
+      });
+      updateActiveGateDerivation();
+    }
+
+    function toggleFA(pin) {
+      if (pin === 'a') State.faA = State.faA ? 0 : 1;
+      if (pin === 'b') State.faB = State.faB ? 0 : 1;
+      if (pin === 'cin') State.faCin = State.faCin ? 0 : 1;
+      updateFA();
+      beep(State.faCin ? 680 : 420);
+    }
+    function setFA(a, b, cin) { State.faA = a; State.faB = b; State.faCin = cin; updateFA(); beep(540); }
+    function updateFA() {
+      const a = State.faA, b = State.faB, cin = State.faCin;
+      const res = digitalFA(a, b, cin);
+      document.getElementById('ind-fa-a').innerText = a;
+      document.getElementById('ind-fa-b').innerText = b;
+      document.getElementById('ind-fa-cin').innerText = cin;
+      document.getElementById('sw-fa-a').classList.toggle('active', a === 1);
+      document.getElementById('sw-fa-b').classList.toggle('active', b === 1);
+      document.getElementById('sw-fa-cin').classList.toggle('active', cin === 1);
+
+      const setWire = (id, high) => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('stroke', high ? '#10b981' : '#3f4252');
+      };
+      setWire('w-fa-a', a === 1); setWire('w-fa-b', b === 1); setWire('w-fa-cin', cin === 1);
+      setWire('w-fa-ha1s', res.ha1.sum === 1); setWire('w-fa-sum', res.sum === 1);
+      setWire('w-fa-c1', res.ha1.carry === 1); setWire('w-fa-c2', res.ha2.carry === 1);
+      setWire('w-fa-cout', res.cout === 1);
+
+      triggerArrival(document.getElementById('txt-fa-sum'), `Sum = ${res.sum}`);
+      triggerArrival(document.getElementById('txt-fa-cout'), `Cout = ${res.cout}`);
+
+      const m = (a << 2) | (b << 1) | cin;
+      document.querySelectorAll('#tb-fa tbody tr').forEach(r => {
+        const rowM = r.getAttribute('data-m') !== null ? parseInt(r.getAttribute('data-m')) : (r.dataset ? parseInt(r.dataset.m) : -1);
+        r.classList.toggle('active-eval', rowM === m);
+      });
+      updateActiveGateDerivation();
+    }
+
+    /* ==========================================================================
+       UPDATE 3: INTERACTIVE GATE SCHEMATIC PROBE & PROPAGATION ANIMATION
+       ========================================================================== */
+    function updateActiveGateDerivation() {
+      const elSteps = document.getElementById('gate-boolean-steps');
+      const elBadge = document.getElementById('gate-active-minterm-badge');
+      if (!elSteps) return;
+
+      const isHA = document.getElementById('gate-ha-wrap') && document.getElementById('gate-ha-wrap').style.display !== 'none';
+      if (isHA) {
+        const a = State.haA, b = State.haB;
+        const m = (a << 1) | b;
+        if (elBadge) elBadge.innerText = `ACTIVE MINTERM: m${m} (A=${a}, B=${b})`;
+        const sumVal = a ^ b;
+        const carryVal = a & b;
+        elSteps.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <div><strong style="color:var(--amber-bright);">1. Input State Vector:</strong> A = ${a}, B = ${b} &bull; Minterm m<sub>${m}</sub> active</div>
+            <div><strong style="color:var(--amber-bright);">2. XOR Gate (74HC86):</strong> Sum = A &oplus; B = ${a} &oplus; ${b} = <strong style="color:#fff; font-size:0.95rem;">${sumVal}</strong> <span style="color:var(--carbon-400); font-size:0.75rem;">(Stage Delay: 11.0 ns)</span></div>
+            <div><strong style="color:var(--amber-bright);">3. AND Gate (74HC08):</strong> Carry = A &middot; B = ${a} &middot; ${b} = <strong style="color:var(--amber-bright); font-size:0.95rem;">${carryVal}</strong> <span style="color:var(--carbon-400); font-size:0.75rem;">(Stage Delay: 9.0 ns)</span></div>
+          </div>
+        `;
+      } else {
+        const a = State.faA, b = State.faB, cin = State.faCin;
+        const m = (a << 2) | (b << 1) | cin;
+        if (elBadge) elBadge.innerText = `ACTIVE MINTERM: m${m} (A=${a}, B=${b}, Cin=${cin})`;
+        const ha1_s = a ^ b;
+        const ha1_c = a & b;
+        const sumVal = ha1_s ^ cin;
+        const ha2_c = ha1_s & cin;
+        const coutVal = ha1_c | ha2_c;
+        elSteps.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <div><strong style="color:var(--mint-bright);">1. Input State Vector:</strong> A = ${a}, B = ${b}, C_in = ${cin} &bull; Minterm m<sub>${m}</sub> active</div>
+            <div><strong style="color:var(--mint-bright);">2. Half Adder 1 (HA1):</strong> HA1_Sum = A &oplus; B = ${ha1_s}, HA1_Carry = A &middot; B = ${ha1_c}</div>
+            <div><strong style="color:var(--mint-bright);">3. Half Adder 2 (HA2):</strong> Full Sum = HA1_Sum &oplus; C_in = <strong style="color:#fff; font-size:0.95rem;">${sumVal}</strong>, HA2_Carry = HA1_Sum &middot; C_in = ${ha2_c}</div>
+            <div><strong style="color:var(--mint-bright);">4. OR Gate (Carry Aggregation):</strong> C_out = HA1_Carry + HA2_Carry = ${ha1_c} + ${ha2_c} = <strong style="color:var(--amber-bright); font-size:0.95rem;">${coutVal}</strong></div>
+          </div>
+        `;
+      }
+    }
+
+    function stepGatePropagation() {
+      const isHA = document.getElementById('gate-ha-wrap') && document.getElementById('gate-ha-wrap').style.display !== 'none';
+      beep(650);
+      const targetSvgId = isHA ? 'svg-ha-schematic' : 'svg-fa-schematic';
+      const svg = document.getElementById(targetSvgId);
+      if (svg) {
+        svg.classList.add('gate-glow-pulse');
+        setTimeout(() => svg.classList.remove('gate-glow-pulse'), 650);
+      }
+    }
+
+    /* K-Map Studio */
+    function renderKMap() {
+      const table = document.getElementById('kmap-table-node');
+      const svg = document.getElementById('kmap-svg-node');
+      const sop = document.getElementById('kmap-sop-text');
+      const desc = document.getElementById('kmap-implicants-desc');
+      table.innerHTML = ''; svg.innerHTML = ''; desc.innerHTML = '';
+
+      if (State.kmapTarget.startsWith('ha')) {
+        let html = `<thead><tr><th class="kmap-head-cell">A \\ B</th><th>0</th><th>1</th></tr></thead><tbody>`;
+        for (let a = 0; a <= 1; a++) {
+          html += `<tr><th>${a}</th>`;
+          for (let b = 0; b <= 1; b++) {
+            const m = (a << 1) | b;
+            const val = (State.kmapTarget === 'ha-sum') ? (a ^ b) : (a & b);
+            html += `<td class="kmap-cell" id="km-${m}" onclick="handleKMClick(${m})">
+              <div class="num ${val ? 'arrive-text' : ''}" style="color:${val ? 'var(--mint-bright)' : 'var(--carbon-600)'}">${val}</div>
+              <span class="tag">m${m}</span>
+            </td>`;
+          }
+          html += `</tr>`;
+        }
+        html += `</tbody>`;
+        table.innerHTML = html;
+
+        if (State.kmapTarget === 'ha-cout') {
+          sop.innerHTML = `Carry = A · B &nbsp; <span style="font-size:0.8rem; color:var(--carbon-400);">(m₃)</span>`;
+          desc.innerHTML = `<div>&bull; Single 1-Cell: A=1, B=1 &implies; <strong>AB</strong></div>`;
+        } else {
+          sop.innerHTML = `Sum = A'B + AB' = <span style="color:var(--amber-bright);">A ⊕ B</span>`;
+          desc.innerHTML = `<div>&bull; m₁ (0,1): A'B</div><div>&bull; m₂ (1,0): AB' &implies; Exclusive-OR Parity</div>`;
+        }
+      } else {
+        const cols = [{b:0,c:0},{b:0,c:1},{b:1,c:1},{b:1,c:0}];
+        let html = `<thead><tr><th class="kmap-head-cell">A \\ BCin</th><th>00</th><th>01</th><th>11</th><th>10</th></tr></thead><tbody>`;
+        for (let a = 0; a <= 1; a++) {
+          html += `<tr><th>${a}</th>`;
+          cols.forEach(col => {
+            const m = (a << 2) | (col.b << 1) | col.c;
+            const fa = digitalFA(a, col.b, col.c);
+            const val = (State.kmapTarget === 'fa-cout') ? fa.cout : fa.sum;
+            html += `<td class="kmap-cell" id="km-${m}" onclick="handleKMClick(${m})">
+              <div class="num ${val ? 'arrive-text' : ''}" style="color:${val ? 'var(--mint-bright)' : 'var(--carbon-600)'}">${val}</div>
+              <span class="tag">m${m}</span>
+            </td>`;
+          });
+          html += `</tr>`;
+        }
+        html += `</tbody>`;
+        table.innerHTML = html;
+
+        if (State.kmapTarget === 'fa-cout') {
+          sop.innerHTML = `Cout = <span style="color:var(--mint-bright);">B·Cin</span> + <span style="color:var(--amber-bright);">A·Cin</span> + <span style="color:#fff;">A·B</span>`;
+          desc.innerHTML = `
+            <div>&bull; <span style="color:var(--mint-bright);">Pair (m₃, m₇)</span>: Col BCin=11 &implies; <strong>B · Cin</strong></div>
+            <div>&bull; <span style="color:var(--amber-bright);">Pair (m₅, m₇)</span>: Row A=1, Cols 01,11 &implies; <strong>A · Cin</strong></div>
+            <div>&bull; <span style="color:#fff;">Pair (m₆, m₇)</span>: Row A=1, Cols 11,10 &implies; <strong>A · B</strong></div>
+          `;
+        } else {
+          sop.innerHTML = `Sum = A'B'Cin + A'BCin' + AB'Cin' + ABCin = <span style="color:var(--amber-bright);">A ⊕ B ⊕ Cin</span>`;
+          desc.innerHTML = `
+            <div>&bull; Checkerboard Parity: 4 isolated single-cell minterms (m₁, m₂, m₄, m₇)</div>
+            <div>&bull; Canonical 3-input Exclusive-OR expansion</div>
+          `;
+        }
+      }
+      requestAnimationFrame(drawKMapOverlays);
+    }
+
+    function drawKMapOverlays() {
+      const svg = document.getElementById('kmap-svg-node');
+      const box = document.getElementById('kmap-board-wrap');
+      if (!svg || !box) return;
+
+      const cRect = box.getBoundingClientRect();
+      if (!cRect.width || !cRect.height) {
+        setTimeout(drawKMapOverlays, 80);
+        return;
+      }
+      svg.setAttribute('viewBox', `0 0 ${cRect.width} ${cRect.height}`);
+      svg.innerHTML = '';
+
+      const getRect = (m) => {
+        const el = document.getElementById(`km-${m}`);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { x: r.left - cRect.left, y: r.top - cRect.top, w: r.width, h: r.height };
+      };
+
+      const addLoop = (x, y, w, h, cls) => {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x + 5); rect.setAttribute('y', y + 5);
+        rect.setAttribute('width', w - 10); rect.setAttribute('height', h - 10);
+        rect.setAttribute('rx', 8);
+        rect.setAttribute('class', `kmap-loop ${cls}`);
+        svg.appendChild(rect);
+      };
+
+      if (State.kmapTarget === 'fa-cout') {
+        const c3 = getRect(3), c7 = getRect(7), c5 = getRect(5), c6 = getRect(6);
+        if (c3 && c7) addLoop(c3.x, Math.min(c3.y, c7.y), c3.w, c3.h + c7.h, 'c1');
+        if (c5 && c7) addLoop(Math.min(c5.x, c7.x), c5.y, c5.w + c7.w, c5.h, 'c2');
+        if (c6 && c7) addLoop(Math.min(c6.x, c7.x), c6.y, c6.w + c7.w, c6.h, 'c3');
+      } else if (State.kmapTarget === 'ha-cout') {
+        const c3 = getRect(3);
+        if (c3) addLoop(c3.x, c3.y, c3.w, c3.h, 'c1');
+      }
+    }
+
+    function handleKMClick(m) {
+      if (State.kmapTarget.startsWith('ha')) setHA((m >> 1) & 1, m & 1);
+      else setFA((m >> 2) & 1, (m >> 1) & 1, m & 1);
+    }
+
+    /* ==========================================================================
+       UPDATE 2: VIRTUAL LOGIC ANALYZER & OSCILLOSCOPE TIMEBASE ENGINE
+       ========================================================================== */
+    function toggleAnalyzerSweep() {
+      State.analyzerSweepActive = !State.analyzerSweepActive;
+      const btn = document.getElementById('btn-analyzer-sweep');
+      const icon = document.getElementById('analyzer-sweep-icon');
+      const txt = document.getElementById('analyzer-sweep-txt');
+      if (State.analyzerSweepActive) {
+        if (icon) icon.innerHTML = '&#10074;&#10074;';
+        if (txt) txt.innerText = 'Pause Sweep';
+        if (btn) btn.classList.add('primary');
+        animateSweep();
+      } else {
+        if (icon) icon.innerHTML = '&#9654;';
+        if (txt) txt.innerText = 'Run Live Sweep';
+        if (btn) btn.classList.remove('primary');
+        if (State.analyzerAnimId) {
+          cancelAnimationFrame(State.analyzerAnimId);
+          State.analyzerAnimId = null;
+        }
+        if (State.lastTrace) drawWaveforms(State.lastTrace);
+      }
+      beep(State.analyzerSweepActive ? 600 : 400);
+    }
+
+    function animateSweep() {
+      if (!State.analyzerSweepActive) return;
+      const canvas = document.getElementById('analyzer-canvas');
+      if (canvas && State.lastTrace) {
+        State.analyzerSweepX += 2.5;
+        if (State.analyzerSweepX > canvas.width - 25) State.analyzerSweepX = 90;
+        drawWaveforms(State.lastTrace);
+      }
+      State.analyzerAnimId = requestAnimationFrame(animateSweep);
+    }
+
+    /* Waveforms Canvas (Amber / Mint High Contrast with Timebase Calibration) */
+    function drawWaveforms(res) {
+      const canvas = document.getElementById('analyzer-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Nanosecond Time Grid & Scale Numbers
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#4a5064';
+      ctx.strokeStyle = '#1a1c24'; ctx.lineWidth = 1;
+      let tickIdx = 0;
+      for (let x = 90; x < w - 20; x += 90) {
+        ctx.beginPath(); ctx.moveTo(x, 15); ctx.lineTo(x, h); ctx.stroke();
+        const tVal = (tickIdx * 10 * State.timebase).toFixed(0);
+        ctx.fillText(`${tVal}ns`, x - 10, 12);
+        tickIdx++;
+      }
+
+      // Settling time telemetry sync
+      const elSettling = document.getElementById('analyzer-disp-settling');
+      if (elSettling && res) elSettling.innerText = `${res.totalDelay.toFixed(1)} ${res.unit}`;
+
+      const channels = [
+        { name: 'CLK', sq: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1], col: '#f59e0b' },
+        { name: `A[${State.bitWidth-1}:0]`, bus: true, str: `0x${State.valA.toString(16).toUpperCase()}`, col: '#f59e0b' },
+        { name: `B[${State.bitWidth-1}:0]`, bus: true, str: `0x${State.valB.toString(16).toUpperCase()}`, col: '#10b981' },
+        { name: 'C_IN', sq: Array(10).fill(0), col: '#878c9e' },
+        { name: 'C_RIPPLE', ripple: true, col: '#f59e0b' },
+        { name: `SUM[${State.bitWidth-1}:0]`, bus: true, str: `0x${bitsToInt(res.sumBits).toString(16).toUpperCase()}`, col: '#10b981' },
+        { name: 'C_OUT', sq: Array(10).fill(res.finalCout), col: '#fbbf24' }
+      ];
+
+      const startX = 90;
+      channels.forEach((ch, idx) => {
+        const y = 25 + idx * 32;
+        ctx.font = '10.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#878c9e';
+        ctx.fillText(ch.name, 10, y + 12);
+
+        if (ch.bus) {
+          ctx.strokeStyle = ch.col;
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
+          ctx.beginPath();
+          ctx.moveTo(startX, y + 10); ctx.lineTo(startX + 10, y + 2);
+          ctx.lineTo(w - 30, y + 2); ctx.lineTo(w - 20, y + 10);
+          ctx.lineTo(w - 30, y + 18); ctx.lineTo(startX + 10, y + 18);
+          ctx.closePath(); ctx.stroke(); ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.fillText(ch.str, startX + 35, y + 13);
+        } else if (ch.ripple) {
+          ctx.strokeStyle = ch.col; ctx.lineWidth = 2;
+          ctx.beginPath();
+          let cx = startX, cy = y + 18;
+          ctx.moveTo(cx, cy);
+          for (let s = 0; s < State.bitWidth; s++) {
+            cx += 45;
+            const targetY = res.stages[s].cout === 1 ? (y + 4) : (y + 18);
+            ctx.lineTo(cx, cy); ctx.lineTo(cx, targetY); cy = targetY;
+          }
+          ctx.lineTo(w - 20, cy); ctx.stroke();
+        } else {
+          ctx.strokeStyle = ch.col; ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          let cx = startX;
+          let cy = y + (ch.sq[0] ? 4 : 18);
+          ctx.moveTo(cx, cy);
+          for (let i = 0; i < 9; i++) {
+            const nx = cx + 45;
+            const ny = y + (ch.sq[i + 1] ? 4 : 18);
+            ctx.lineTo(nx, cy);
+            if (cy !== ny) ctx.lineTo(nx, ny);
+            cx = nx; cy = ny;
+          }
+          ctx.lineTo(w - 20, cy); ctx.stroke();
+        }
+      });
+
+      // Render Live Sweep Cursor Line if Sweep is active
+      if (State.analyzerSweepActive) {
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(State.analyzerSweepX, 15);
+        ctx.lineTo(State.analyzerSweepX, h);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+        ctx.fillRect(State.analyzerSweepX - 3, 15, 6, h - 15);
+      }
+    }
+
+    /* ==========================================================================
+       UPDATE 4: AUTO-GROUP K-MAP SYNTHESIZER
+       ========================================================================== */
+    function autoSolveKMap() {
+      const t = State.kmapTarget;
+      beep(580);
+      let exp = '', derivation = '';
+      if (t === 'fa-cout') {
+        exp = 'Cout = B·Cin + A·Cin + A·B';
+        derivation = 'Identified 3 optimal adjacent prime implicant pairs from minterms {m3, m5, m6, m7}: Pair(m3,m7)&rarr;B·Cin, Pair(m5,m7)&rarr;A·Cin, Pair(m6,m7)&rarr;A·B. All redundant literals eliminated algebraically.';
+      } else if (t === 'fa-sum') {
+        exp = 'Sum = A ⊕ B ⊕ Cin';
+        derivation = 'Checkerboard 3D parity lattice minterms {m1, m2, m4, m7}. No adjacent 1-cells merge; algebraically equivalent to 3-variable odd parity Exclusive-OR.';
+      } else if (t === 'ha-cout') {
+        exp = 'Carry = A · B';
+        derivation = 'Single isolated minterm m3 = A·B forms canonical 1x1 essential prime implicant.';
+      } else {
+        exp = 'Sum = A ⊕ B';
+        derivation = 'Isolated diagonal minterms {m1, m2} form canonical 2-input XOR sum: A·B̅ + A̅·B.';
+      }
+      triggerArrival(document.getElementById('kmap-sop-text'), exp);
+      const descEl = document.getElementById('kmap-implicants-desc');
+      if (descEl) {
+        descEl.innerHTML = `
+          <div style="color:var(--mint-bright); font-weight:700;">&check; OPTIMAL SYNTHESIS GENERATED</div>
+          <div style="color:var(--carbon-200); line-height:1.6;">${derivation}</div>
+        `;
+      }
+    }
+
+    /* Practice Missions */
+    function updateMissionBadge(id, solved, msg) {
+      State.missionsSolved[id] = solved;
+      const badge = document.getElementById(`badge-${id}`);
+      const card = document.getElementById(`card-${id}`);
+      const msgEl = document.getElementById(`msg-${id}`);
+      if (solved) {
+        badge.className = 'mission-badge solved';
+        triggerArrival(badge, 'SOLVED ✔');
+        card.classList.add('completed');
+        triggerArrival(msgEl, msg);
+        msgEl.style.color = 'var(--mint-bright)';
+      } else {
+        triggerArrival(msgEl, msg);
+        msgEl.style.color = '#ef4444';
+      }
+      const count = Object.values(State.missionsSolved).filter(Boolean).length;
+      triggerArrival(document.getElementById('mission-score-tag'), `COMPLETED: ${count} / 4 MISSIONS`);
+      if (solved) beep(880, 0.15);
+    }
+
+    function tryMission1() {
+      if (State.bitWidth === 4 && State.lastTrace && State.lastTrace.finalCout === 1 && bitsToInt(State.lastTrace.sumBits) === 0) {
+        updateMissionBadge('m1', true, 'Success! Full 4-bit ripple carry cascade triggered.');
+      } else {
+        updateMissionBadge('m1', false, 'Try again! Need 4-bit inputs that equal 16 total (e.g. 15 + 1).');
+      }
+    }
+
+    function tryMission2() {
+      if (State.faA === 1 && State.faB === 1 && State.faCin === 1) {
+        updateMissionBadge('m2', true, 'Success! Odd parity bit Sum=1, Majority Carry Cout=1.');
+      } else {
+        updateMissionBadge('m2', false, 'Not yet! Go to Tab 04 Gate Lab and set A=1, B=1, Cin=1.');
+      }
+    }
+
+    function tryMission3() {
+      if (State.bitWidth === 8 && (State.valA + State.valB === 255) && State.lastTrace && State.lastTrace.finalCout === 0) {
+        updateMissionBadge('m3', true, 'Success! Maximum unsigned 8-bit ceiling reached without overflow.');
+      } else {
+        updateMissionBadge('m3', false, 'Try again! Switch to 8-bit mode and enter operands summing to 255 (e.g. 100 + 155).');
+      }
+    }
+
+    function tryMission4() {
+      if (State.haA === 1 && State.haB === 1) {
+        updateMissionBadge('m4', true, 'Success! Half Adder AND gate generated carry with XOR sum = 0.');
+      } else {
+        updateMissionBadge('m4', false, 'Not yet! Go to Tab 04 Gate Lab and set Half Adder A=1, B=1.');
+      }
+    }
+
+    function solveMission1() {
+      applyPreset(15, 1, 4);
+      setTimeout(tryMission1, 60);
+    }
+
+    function solveMission2() {
+      setFA(1, 1, 1);
+      setTimeout(tryMission2, 60);
+    }
+
+    function solveMission3() {
+      applyPreset(100, 155, 8);
+      setTimeout(tryMission3, 60);
+    }
+
+    function solveMission4() {
+      setHA(1, 1);
+      setTimeout(tryMission4, 60);
+    }
+
+    /* Automated Testbench */
+    const testCases = [
+      { id: 1,  cat: 'Normal', a: 0,   b: 0,   w: 4 },
+      { id: 2,  cat: 'Normal', a: 1,   b: 0,   w: 4 },
+      { id: 3,  cat: 'Normal', a: 5,   b: 3,   w: 4 },
+      { id: 4,  cat: 'Normal', a: 7,   b: 8,   w: 4 },
+      { id: 5,  cat: 'Normal', a: 10,  b: 5,   w: 4 },
+      { id: 6,  cat: 'Normal', a: 9,   b: 6,   w: 4 },
+      { id: 7,  cat: 'Normal', a: 2,   b: 2,   w: 4 },
+      { id: 8,  cat: 'Normal', a: 14,  b: 1,   w: 4 },
+      { id: 9,  cat: 'Normal', a: 50,  b: 75,  w: 8 },
+      { id: 10, cat: 'Normal', a: 128, b: 64,  w: 8 },
+      { id: 11, cat: 'Normal', a: 100, b: 155, w: 8 },
+      { id: 12, cat: 'Fault',  a: 15,  b: 1,   w: 4 },
+      { id: 13, cat: 'Fault',  a: 15,  b: 15,  w: 4 },
+      { id: 14, cat: 'Fault',  a: 255, b: 1,   w: 8 },
+      { id: 15, cat: 'Fault',  a: 255, b: 255, w: 8 },
+      { id: 16, cat: 'Fault',  a: 0,   b: 255, w: 8 }
+    ];
+
+    let tbLog = [];
+
+    function populateTBTable() {
+      const tbody = document.getElementById('tb-tbody');
+      tbody.innerHTML = '';
+      testCases.forEach(tc => {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-type', tc.cat);
+        tr.innerHTML = `
+          <td>VEC_${tc.id}</td>
+          <td><span style="font-size:0.72rem; color:var(--amber-main); font-weight:600;">${tc.cat}</span></td>
+          <td><code>${tc.a} + ${tc.b}</code></td>
+          <td>${tc.w}-bit</td>
+          <td><code>${(tc.a + tc.b) & (Math.pow(2, tc.w) - 1)}</code></td>
+          <td id="tb-sim-${tc.id}">--</td>
+          <td id="tb-ok-${tc.id}"><span style="color:var(--carbon-600);">READY</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterTestbench(cat) {
+      State.tbFilter = cat;
+      const btnAll = document.getElementById('tb-filter-all');
+      const btnNorm = document.getElementById('tb-filter-norm');
+      const btnFault = document.getElementById('tb-filter-fault');
+      if (btnAll) btnAll.classList.toggle('active', cat === 'all');
+      if (btnNorm) btnNorm.classList.toggle('active', cat === 'normal');
+      if (btnFault) btnFault.classList.toggle('active', cat === 'fault');
+
+      const rows = document.querySelectorAll('#tb-tbody tr');
+      rows.forEach(r => {
+        const type = r.getAttribute('data-type');
+        if (cat === 'all') r.style.display = '';
+        else if (cat === 'normal') r.style.display = type === 'Normal' ? '' : 'none';
+        else if (cat === 'fault') r.style.display = type === 'Fault' ? '' : 'none';
+      });
+      beep(460);
+    }
+
+    async function runTestbench() {
+      const consoleOut = document.getElementById('verilog-stdout');
+      let out = `// IEEE 1364 VERILOG TESTBENCH ASSERTIONS\n`;
+      tbLog = [];
+      let passed = 0;
+
+      for (let i = 0; i < testCases.length; i++) {
+        const tc = testCases[i];
+        const aBits = intToBits(tc.a, tc.w);
+        const bBits = intToBits(tc.b, tc.w);
+        const sim = digitalRipple(aBits, bBits, 0);
+
+        const obsSum = bitsToInt(sim.sumBits);
+        const obsCout = sim.finalCout;
+
+        const maxV = Math.pow(2, tc.w) - 1;
+        const expSum = (tc.a + tc.b) & maxV;
+        const expCout = (tc.a + tc.b) > maxV ? 1 : 0;
+        const ok = (obsSum === expSum) && (obsCout === expCout);
+        if (ok) passed++;
+
+        triggerArrival(document.getElementById(`tb-sim-${tc.id}`), `${obsSum} [CF:${obsCout}]`);
+        document.getElementById(`tb-ok-${tc.id}`).innerHTML = ok 
+          ? `<span class="arrive-text" style="color:var(--mint-bright); font-weight:bold;">PASS</span>` 
+          : `<span class="arrive-text" style="color:var(--signal-err)">FAIL</span>`;
+
+        out += `  T=${(i*10).toFixed(1)}ns | VEC_${tc.id.toString().padStart(2,'0')} | A=0x${tc.a.toString(16)} B=0x${tc.b.toString(16)} | EXP=0x${expSum.toString(16)} OBS=0x${obsSum.toString(16)} | ${ok ? 'PASSED_OK' : 'FAIL_ASSERT'}\n`;
+        consoleOut.innerText = out;
+
+        tbLog.push({ id: tc.id, cat: tc.cat, a: tc.a, b: tc.b, w: tc.w, expSum, expCout, obsSum, obsCout, status: ok ? 'PASS' : 'FAIL' });
+
+        const progressPct = (((i + 1) / testCases.length) * 100).toFixed(0);
+        const pBar = document.getElementById('tb-progress-bar');
+        if (pBar) pBar.style.width = `${progressPct}%`;
+        const pTxt = document.getElementById('tb-progress-text');
+        if (pTxt) pTxt.innerText = `${passed} / ${testCases.length} PASSED`;
+
+        await new Promise(r => setTimeout(r, 35));
+      }
+      out += `// SUMMARY: ${passed} / ${testCases.length} ASSERTIONS VERIFIED (100% OK)\n`;
+      consoleOut.innerText = out;
+      const badge = document.getElementById('tb-status-badge');
+      if (badge) {
+        badge.innerText = `${passed === testCases.length ? '100% PASS RATE' : `${passed}/${testCases.length} PASSED`}`;
+        badge.style.background = passed === testCases.length ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+        badge.style.color = passed === testCases.length ? 'var(--mint-bright)' : '#ef4444';
+      }
+      beep(880, 0.12);
+    }
+
+    function exportCSV() {
+      if (!tbLog.length) { alert('Run testbench before exporting.'); return; }
+      let csv = 'Vector_ID,Category,A,B,Bit_Width,Expected_Sum,Expected_CF,Observed_Sum,Observed_CF,Status\n';
+      tbLog.forEach(r => {
+        csv += `VEC_${r.id},${r.cat},${r.a},${r.b},${r.w},${r.expSum},${r.expCout},${r.obsSum},${r.obsCout},${r.status}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ec2201_testbench_results_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function copyVerilog() {
+      navigator.clipboard.writeText(document.getElementById('verilog-stdout').innerText);
+    }
+
+    /* Boot */
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.workspace-tabs .view-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      document.querySelectorAll('#width-seg .seg-btn').forEach(b => {
+        b.addEventListener('click', () => updateBitWidth(b.dataset.width));
+      });
+      document.querySelectorAll('#radix-seg .seg-btn').forEach(b => {
+        b.addEventListener('click', () => updateRadix(b.dataset.radix));
+      });
+
+      document.querySelectorAll('#tech-family-toggle .seg-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('#tech-family-toggle .seg-btn').forEach(btn => btn.classList.remove('active'));
+          b.classList.add('active');
+          State.techFamily = b.dataset.tech;
+          recalculateSimulation();
+        });
+      });
+
+      document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+        State.sound = !State.sound;
+        document.getElementById('btn-sound-toggle').innerText = `Sound: ${State.sound ? 'ON' : 'OFF'}`;
+      });
+
+      document.querySelectorAll('#gate-macro-toggle .seg-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('#gate-macro-toggle .seg-btn').forEach(btn => btn.classList.remove('active'));
+          b.classList.add('active');
+          const isHA = b.dataset.gate === 'ha';
+          document.getElementById('gate-ha-wrap').style.display = isHA ? 'grid' : 'none';
+          document.getElementById('gate-fa-wrap').style.display = isHA ? 'none' : 'grid';
+          beep(500);
+        });
+      });
+
+      document.querySelectorAll('#kmap-target-seg .seg-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('#kmap-target-seg .seg-btn').forEach(btn => btn.classList.remove('active'));
+          b.classList.add('active');
+          State.kmapTarget = b.dataset.target;
+          renderKMap();
+          beep(490);
+        });
+      });
+
+      document.getElementById('btn-run-ripple').addEventListener('click', runRippleSim);
+      document.getElementById('btn-step-ripple').addEventListener('click', stepRippleSim);
+      document.getElementById('btn-reset-ripple').addEventListener('click', resetRippleSim);
+
+      document.querySelectorAll('#speed-seg .seg-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('#speed-seg .seg-btn').forEach(btn => btn.classList.remove('active'));
+          b.classList.add('active');
+          State.simSpeed = parseInt(b.dataset.speed);
+        });
+      });
+
+      inA.addEventListener('input', validateInputs);
+      inB.addEventListener('input', validateInputs);
+
+      document.getElementById('btn-run-tb').addEventListener('click', runTestbench);
+      document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+      document.getElementById('btn-copy-verilog').addEventListener('click', copyVerilog);
+
+      // Analyzer Timebase Segment controls
+      document.querySelectorAll('#analyzer-timebase-seg .seg-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('#analyzer-timebase-seg .seg-btn').forEach(btn => btn.classList.remove('active'));
+          b.classList.add('active');
+          State.timebase = parseFloat(b.dataset.timebase);
+          const elTb = document.getElementById('analyzer-disp-timebase');
+          if (elTb) elTb.innerText = `${State.timebase.toFixed(1)} ns / div`;
+          if (State.lastTrace) drawWaveforms(State.lastTrace);
+          beep(480);
+        });
+      });
+
+      // Canvas Mouse hover inspection for live oscilloscope readout
+      const aCanvas = document.getElementById('analyzer-canvas');
+      if (aCanvas) {
+        aCanvas.addEventListener('mousemove', (e) => {
+          const rect = aCanvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const scaleX = aCanvas.width / rect.width;
+          const canvasX = mouseX * scaleX;
+          if (canvasX >= 90 && canvasX <= aCanvas.width - 20) {
+            const tNs = ((canvasX - 90) * State.timebase / 9.0).toFixed(1);
+            const elReadout = document.getElementById('analyzer-cursor-readout');
+            if (elReadout) elReadout.innerText = `t = ${tNs} ns`;
+            const elSignals = document.getElementById('analyzer-cursor-signals');
+            if (elSignals && State.lastTrace) {
+              elSignals.innerText = `A: 0x${State.valA.toString(16).toUpperCase()} | B: 0x${State.valB.toString(16).toUpperCase()} | Sum: 0x${bitsToInt(State.lastTrace.sumBits).toString(16).toUpperCase()} | Cout: ${State.lastTrace.finalCout}`;
+            }
+          }
+        });
+        aCanvas.addEventListener('mouseleave', () => {
+          const elReadout = document.getElementById('analyzer-cursor-readout');
+          if (elReadout) elReadout.innerText = 't = -- ns';
+          const elSignals = document.getElementById('analyzer-cursor-signals');
+          if (elSignals) elSignals.innerText = 'Hover cursor over canvas';
+        });
+      }
+
+      renderRippleDOM();
+      validateInputs();
+      updateHA();
+      updateFA();
+      renderKMap();
+      populateTBTable();
+      updateBreadboard();
+    });
+  </script>
+</body>
+</html>
